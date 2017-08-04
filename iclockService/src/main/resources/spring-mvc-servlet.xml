@@ -18,9 +18,6 @@
 
     <mvc:annotation-driven content-negotiation-manager="contentNegotiationManager">
         <mvc:argument-resolvers>
-            <!--<bean class="com.glanway.gone.spring.bind.PageableHandlerMethodArgumentResolver" />-->
-            <!--<bean class="com.glanway.gone.spring.bind.FiltersHandlerMethodArgumentResolver"/>-->
-            <!--<bean class="org.ponly.webbase.spring.web.bind.PageableHandlerMethodArgumentResolver" />-->
             <bean class="org.ponly.webbase.spring.web.bind.PageableHandlerMethodArgumentResolver">
                 <property name="sortResolver">
                     <bean class="org.ponly.webbase.spring.web.bind.SortHandlerMethodArgumentResolver2"/>
@@ -62,38 +59,18 @@
     </bean>
 
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <!--<property name="prefix" value="/WEB-INF/view/"/>-->
         <property name="prefix" value="/WEB-INF/view/admin/"/>
         <property name="suffix" value=".jsp"/>
     </bean>
 
     <!-- id 不能省略 -_-! -->
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-        <!--one of the properties disabled; the maximum file size in bytes -->
-        <!--<property name="maxUploadSize" value="2097152"/>-->
         <property name="defaultEncoding" value="UTF-8"/>
     </bean>
 
     <bean class="org.ponly.webbase.spring.web.handler.ResponseBodyHandlerMethodExceptionResolver">
         <property name="messageConverters" ref="jackson2HttpMessageConverter" />
     </bean>
-
-   <!--  <mvc:interceptors>
-        <mvc:interceptor>
-            设置拦截的路径
-            <mvc:mapping path="/admin/**"/>
-            <mvc:mapping path="/**"/>
-            <mvc:exclude-mapping path="/favicon.ico" />
-            <mvc:exclude-mapping path="/robots.txt" />
-            <mvc:exclude-mapping path="/humans.txt" />
-            <mvc:exclude-mapping path="/js/**" />
-            <mvc:exclude-mapping path="/css/**" />
-            <mvc:exclude-mapping path="/images/**" />
-            <mvc:exclude-mapping path="/storage/**" />
-            <mvc:exclude-mapping path="/ueditor/**" />
-            <bean class="com.glanway.eshop.admin.interceptor.PermissionInterceptor"/>
-        </mvc:interceptor>
-    </mvc:interceptors> -->
 
     <!-- 资源映射 -->
     <mvc:resources mapping="/favicon.ico" location="/"/>
@@ -102,5 +79,4 @@
     <mvc:resources mapping="/js/**" location="/js/"/>
     <mvc:resources mapping="/css/**" location="/css/"/>
     <mvc:resources mapping="/images/**" location="/images/"/>
-
 </beans>
