@@ -65,6 +65,17 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	}
 
 	@Override
+	public void recordTaskLog(Long id) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("id", id);
+		params.put("state", 3);
+		taskDao.updateStateById(params);
+
+		taskDao.insertIntoSelect(id);
+		taskDao.deleteTaskById(id);
+	}
+
+	@Override
 	public Task findOneTask(Map<String, Object> params) {
 		return taskDao.findOneTask(params);
 	}
@@ -75,8 +86,7 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	}
 
 	@Override
-	public void updateDeletedByDate(String date) {
-		taskDao.updateDeletedByDate(date);
+	public List<Task> findTaskByCommand(Integer state, String command) {
+		return taskDao.findTaskByCommand(state, command);
 	}
-
 }

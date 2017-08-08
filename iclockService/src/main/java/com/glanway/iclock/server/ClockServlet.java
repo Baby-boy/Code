@@ -1006,7 +1006,7 @@ public class ClockServlet extends HttpServlet {
 	 */
 	protected void handleCommandReturned(final String sn, final String commandId, final String returnCode,
 			final String commandType) {
-		if (null != commandId) {
+		if (StringUtils.isNotEmpty(commandId)) {
 			if (commandId.startsWith("PING-")) {
 				LOGGER.debug("");
 				return;
@@ -1020,7 +1020,8 @@ public class ClockServlet extends HttpServlet {
 			if (0 > index) {
 				if ("0".equals(returnCode)) {
 					LOGGER.info("设备代码: {} 执行命令({})成功, 返回信息为{}", sn, commandId, commandType);
-					taskService.updateStateById(Long.parseLong(commandId), 3, null);
+					// taskService.updateStateById(Long.parseLong(commandId), 3, null);
+					taskService.recordTaskLog(Long.parseLong(commandId));
 				} else {
 					LOGGER.warn("设备代码: {} 执行命令不成功, 异常代码为:{}, 返回信息为{}", sn, commandId, commandType);
 				}
@@ -1036,19 +1037,22 @@ public class ClockServlet extends HttpServlet {
 			if ("LOG".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_INIT_OVER_ID_PREFIX)) {
 				LOGGER.info("设备{} 从服务器初始化完成", sn);
 				// devices.put(sn, Boolean.TRUE);
-				taskService.updateStateById(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)), 3, null);
+				// taskService.updateStateById(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)), 3, null);
+				taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
 			} else if ("CHECK".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX)) {
 				final String dirtyCheckTimestamp = commandId
 						.substring(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX.length(), commandId.lastIndexOf("_"));
 				doDirtyCheck(sn, dirtyCheckTimestamp);
-				taskService.updateStateById(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)), 3, null);
+				// taskService.updateStateById(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)), 3, null);
+				taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
 			} else if ("DATA".equals(commandType)
 					&& commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX)) {
 				// face 是最后执行的一个命令, 因此这个命令的执行结束后执行脏检查.
 				final String dirtyCheckTimestamp = commandId
 						.substring(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX.length(), commandId.lastIndexOf("_"));
 				doDirtyCheck(sn, dirtyCheckTimestamp);
-				taskService.updateStateById(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)), 3, null);
+				// taskService.updateStateById(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)), 3, null);
+				taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
 			}
 		}
 		LOGGER.debug("设备{}执行指令{}[{}], 结果:{}", sn, commandType, commandId, returnCode);

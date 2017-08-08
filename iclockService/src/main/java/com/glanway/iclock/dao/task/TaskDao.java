@@ -32,7 +32,13 @@ public interface TaskDao extends BaseDao<Task> {
 	/** 根据设备序列号查询该设备是否还存在任务 */
 	public List<Task> findTaskByDeviceSn(@Param("sn") String sn);
 
-	/** 删除三天前的命令 */
-	public void updateDeletedByDate(@Param("date") String date);
+	/** 记录命令表 */
+	public void insertIntoSelect(@Param("id") Long id);
+
+	/** 删除命令 */
+	public void deleteTaskById(@Param("id") Long id);
+
+	/** 根据指令查询指令任务 */
+	public List<Task> findTaskByCommand(@Param("state") Integer state, @Param("command") String command);
 
 }

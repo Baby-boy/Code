@@ -48,6 +48,15 @@ public interface TaskService extends BaseService<Task> {
 	public void updateStateById(Long id, Integer state, Integer oldState);
 
 	/**
+	 * 说明: 删除Task中的命令,并在命令记录表中记录一条相同的记录
+	 *
+	 * @param parseLong
+	 * @author FUQIHAO
+	 * @dateTime 2017年8月8日 下午3:50:42
+	 */
+	public void recordTaskLog(Long id);
+
+	/**
 	 * 说明 : 查询命令
 	 * 
 	 * @param params
@@ -68,11 +77,14 @@ public interface TaskService extends BaseService<Task> {
 	public List<Task> findTaskByDeviceSn(String sn);
 
 	/**
-	 * 说明 : 删除三天前的命令
-	 * 
-	 * @param date
-	 * @author fuqihao
-	 * @dateTime 2017年8月3日 下午3:16:15
+	 * 说明: 根据命令查询命令任务
+	 *
+	 * @param state
+	 * @param string
+	 * @return
+	 * @author FUQIHAO
+	 * @dateTime 2017年8月8日 下午5:45:53
 	 */
-	public void updateDeletedByDate(String date);
+	public List<Task> findTaskByCommand(Integer state, String command);
+
 }

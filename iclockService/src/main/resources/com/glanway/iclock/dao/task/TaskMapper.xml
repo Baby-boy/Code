@@ -175,10 +175,17 @@
 		AND COMMAND LIKE '%DATA UPDATE%'
 	 </select>
 	 
-	 <update id="updateDeletedByDate">
-	 	UPDATE T_TASK 
-	 	SET DELETED = 1 
-	 	WHERE STATE IN (2,3) 
-	 	AND CREATED_DATE <![CDATA[<=]]> TO_DATE(#{date}, 'yyyy-MM-dd HH24:mi:ss')
-	 </update>
+	 <insert id="insertIntoSelect">
+	 	INSERT INTO T_TASK_LOG SELECT * FROM T_TASK WHERE ID = #{id}
+	 </insert>
+	 
+	 <delete id="deleteTaskById">
+	 	DELETE FROM T_TASK WHERE ID = #{id}
+	 </delete>
+	 
+	 <select id="findTaskByCommand" resultType="Task">
+	 	SELECT ID 
+	 	FROM T_TASK 
+	 	WHERE COMMAND LIKE 'C:R-001:REBOOT' AND STATE = 2
+	 </select>
 </mapper>

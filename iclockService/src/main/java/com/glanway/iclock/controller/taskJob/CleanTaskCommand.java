@@ -4,15 +4,14 @@
  */
 package com.glanway.iclock.controller.taskJob;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.glanway.iclock.entity.task.Task;
 import com.glanway.iclock.service.task.TaskService;
-import com.glanway.iclock.util.TimeUtil;
 
 /**
  * 说明 : 定期清除task表的命令
@@ -35,11 +34,10 @@ public class CleanTaskCommand {
 	 */
 	@Scheduled(cron = "0 0 3 * * ?")
 	public void cleanTaskCommand() {
-		// 删除三天前的命令
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(new Date());
-		calendar.add(Calendar.DAY_OF_MONTH, -2);
-		String date = TimeUtil.format(calendar.getTime());
-		taskService.updateDeletedByDate(date);
+		// 将状态为2的重启命令移至日志表中
+		List<Task> tasks = taskService.findTaskByCommand(2, "C:R-001:REBOOT");
+		for (Task task : tasks) {
+			taskService.recordTaskLog(task.getId());
+		}
 	}
 }

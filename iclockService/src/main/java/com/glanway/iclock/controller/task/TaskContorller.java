@@ -153,25 +153,6 @@ public class TaskContorller {
 	 * @author zhangshaung
 	 * @dateTime 2017年4月22日 下午2:40:49
 	 */
-	@RequestMapping("test")
-	@ResponseBody
-	public JsonResult test(String sn) {
-		JsonResult jsonResult = new JsonResult();
-		int totalPeople = deviceService.countEmployeeBySn(sn);
-
-		jsonResult.setMsg("totalPeople==" + totalPeople);
-		jsonResult.setLoginState(3);
-		return jsonResult;
-	}
-
-	/**
-	 * 说明 : HR系统调用 给设备下达修改/新增用户信息的接口
-	 * 
-	 * @param sns
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月22日 下午2:40:49
-	 */
 	@RequestMapping("clearAll")
 	@ResponseBody
 	public JsonResult cleanAll(String sns) {
@@ -213,7 +194,9 @@ public class TaskContorller {
 		List<Device> list = deviceService.findMany(params);
 
 		for (Device device : list) {
-
+			device.setSyncState(2);// 同步中
+			deviceService.updateByPrimaryKeySelective(device);
+			
 			/****** 清除所有员工信息 *****/
 			clearUserInfo(device.getSn());
 			/***** 同步员工基本信息 ******/
@@ -226,11 +209,8 @@ public class TaskContorller {
 			syncUserFinger(device.getSn());
 			/***** 同步员工面部模板信息 ******/
 			syncUserFace(device.getSn());
-
-			device.setSyncState(2);// 同步中
-			deviceService.updateByPrimaryKeySelective(device);
-
 		}
+		
 		jsonResult.setLoginState(3);
 		return jsonResult;
 	}
@@ -255,6 +235,9 @@ public class TaskContorller {
 		String[] snArray = sns.split(",");
 
 		for (String sn : snArray) {
+			Device device = deviceService.selectByDeviceSn(sn);
+			device.setSyncState(2);// 同步中
+			deviceService.updateByPrimaryKeySelective(device);
 
 			/****** 清除所有员工信息 *****/
 			clearUserInfo(sn);
@@ -268,12 +251,8 @@ public class TaskContorller {
 			syncUserFinger(sn);
 			/***** 同步员工面部模板信息 ******/
 			syncUserFace(sn);
-
-			Device device = deviceService.selectByDeviceSn(sn);
-			device.setSyncState(2);// 同步中
-			deviceService.updateByPrimaryKeySelective(device);
-
 		}
+		
 		jsonResult.setLoginState(3);
 		return jsonResult;
 	}
@@ -306,20 +285,18 @@ public class TaskContorller {
 				taskService.save(task);
 				count++;
 				// 下载重启命令
-
 			}
 			if (count > 0) {
-				Task task1 = new Task();
-				task1.setId(null);
-				task1.setSn(sn);
-				task1.setState(1);
-				task1.setCommand("C:R-001:REBOOT");
-				task1.setArgs("");
-				task1.setCreatedDate(new Date());
-				task1.setDeleted("0");
-				taskService.save(task1);
+				Task reBootTask = new Task();
+				reBootTask.setId(null);
+				reBootTask.setSn(sn);
+				reBootTask.setState(1);
+				reBootTask.setCommand("C:R-001:REBOOT");
+				reBootTask.setArgs("");
+				reBootTask.setCreatedDate(new Date());
+				reBootTask.setDeleted("0");
+				taskService.save(reBootTask);
 			}
-
 		}
 	}
 
