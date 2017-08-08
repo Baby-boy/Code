@@ -65,8 +65,8 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	}
 
 	@Override
-	public List<Task> findManyBeforeSize(Map<String, Object> params) {
-		return taskDao.findManyBeforeSize(params);
+	public Task findOneTask(Map<String, Object> params) {
+		return taskDao.findOneTask(params);
 	}
 
 	@Override

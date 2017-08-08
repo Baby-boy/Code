@@ -29,9 +29,7 @@
 		DELETED, CRE_PRO_ID, CREATED_BY, CREATED_DATE,
 		MOD_PRO_ID, LAST_MODIFIED_BY, LAST_MODIFIED_DATE
 	</sql>
-	
-	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
-		parameterType="java.lang.Long">
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
 		select
 		<include refid="Base_Column_List" />
 		from T_DEVICE
@@ -42,49 +40,19 @@
 		where ID = #{id}
 	</delete>
 	<insert id="insert" parameterType="Device">
-		insert into T_DEVICE 
-		(
-		ID, 
-		SIGN_POINT_ID, 
-		NAME,
-		SN, 
-		IP, 
-		FIRST_CONNECTION_TIME,
-		LAST_CONNECTION_TIME,
-		TOTAL_PEOPLE, 
-		UNSYNC_PEOPLE,
-		STATE,
-		SYNC_STATE,
-		BATCH_DATE, 
-		DELETED,
-		CRE_PRO_ID, 
-		CREATED_BY, 
-		CREATED_DATE,
-		MOD_PRO_ID, 
-		LAST_MODIFIED_BY, 
-		LAST_MODIFIED_DATE
-		)
-		values 
-		(
-		#{id}, 
-		#{signPointId},
-		#{name},
-		#{sn}, 
-		#{ip}, 
-		#{firstConnectionTime},
-		#{lastConnectionTime},
-		#{totalPeople}, 
-		#{unsyncPeople},
-		#{state},
-		#{syncState}, 
-		#{batchDate},
-		#{deleted},
-		#{creProId}, 
-		#{createdBy}, 
-		#{createdDate},
-		#{modProId}, 
-		#{lastModifiedBy},
-		#{lastModifiedDate}
+		insert into T_DEVICE(
+			ID, SIGN_POINT_ID, NAME, SN, IP, 
+			FIRST_CONNECTION_TIME, LAST_CONNECTION_TIME,
+			TOTAL_PEOPLE, UNSYNC_PEOPLE, STATE, SYNC_STATE,
+			BATCH_DATE, DELETED, CRE_PRO_ID, CREATED_BY, CREATED_DATE,
+			MOD_PRO_ID, LAST_MODIFIED_BY, LAST_MODIFIED_DATE
+		) values (
+			#{id}, #{signPointId}, #{name}, #{sn}, #{ip}, 
+			#{firstConnectionTime}, #{lastConnectionTime},
+			#{totalPeople}, #{unsyncPeople}, #{state}, #{syncState}, 
+			#{batchDate}, #{deleted}, #{creProId}, 
+			#{createdBy}, #{createdDate}, #{modProId}, 
+			#{lastModifiedBy}, #{lastModifiedDate}
 		)
 	</insert>
 	<insert id="insertSelective" parameterType="Device">
@@ -427,21 +395,25 @@
 	</select>
    
    	<!-- 根据设备代码sn查询设备信息 -->
-	<select id="selectByDeviceSn" resultMap="BaseResultMap"
-		parameterType="java.lang.String">
-		select
-		<include refid="Base_Column_List" />
-		from T_DEVICE
-		where DELETED = 0 AND SN = #{sn} 
+	<select id="selectByDeviceSn" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT
+			<include refid="Base_Column_List" />
+		FROM T_DEVICE
+		WHERE DELETED = 0 AND SN = #{sn} 
 	</select>
+	
 	<!-- 根据设备代码sn 查询考勤点不为空的设备 -->
 	<select id="selectSignPointNotNullByDeviceSn" resultMap="BaseResultMap" parameterType="java.lang.String">
 		SELECT 
 			<include refid="Base_Column_List" /> 
 		FROM T_DEVICE 
 		WHERE DELETED = 0 
-		AND SIGN_POINT_ID IN
-		(SELECT SIGN_POINT_ID FROM T_DEVICE DEV WHERE DELETED = 0)
+		AND SIGN_POINT_ID IN (
+			SELECT 
+				SIGN_POINT_ID 
+			FROM T_DEVICE 
+			WHERE DELETED = 0
+		)
 		AND SN = #{sn} 
 	</select>
 	
@@ -852,10 +824,8 @@
 	
     <select id="countEmployeeBySn" parameterType="map" resultType="int">
     	SELECT 
-    		<!-- COUNT(B.ID) --> 
     		COUNT(DISTINCT A.ID)
     	FROM (
-        <!-- SELECT A.ID,A.NAME,A.CODE,A.SEX,A.MOBILE,A.JOB_STATE,A.PWD,A.CARD,A.PRI FROM ( -->
 	        <include refid="signPointEmployee"/>
 	        UNION
 	        <include refid="groupSignPointDept"/>
@@ -866,8 +836,6 @@
 	        UNION
 	        <include refid="groupDeptEmployee"/>
         ) A WHERE A.ID IS NOT NULL  
-        <!-- GROUP BY A.ID,A.NAME,A.CODE,A.SEX,A.MOBILE,A.JOB_STATE,A.PWD,A.CARD,A.PRI
-        ) B -->
     </select>
 	
 	<!--  根据设备代码 sn 查询应该在当前设备上打卡的员工  返回实体-->
@@ -1263,7 +1231,7 @@
 		AND TFFT.EMPLOYEE_CODE = #{code}
 	</select>
 	
-	<!-- 根据 -->
+	<!-- 根据设备序列号查询系统中已经同步的人数(存在指纹或者脸纹) -->
 	<select id="syncPeopleCountEmployeeBySn" parameterType="map" resultType="java.lang.Long">
         SELECT 
         	COUNT(DISTINCT A.ID)

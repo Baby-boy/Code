@@ -10,17 +10,18 @@ import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
 
 public interface DeviceDao extends BaseDao<Device> {
 
-	int deleteByPrimaryKey(Long id);
+	public int deleteByPrimaryKey(Long id);
 
-	int insert(Device record);
+	public int insert(Device record);
 
-	int insertSelective(Device record);
+	/** 有选择的新建设备 */
+	public int insertSelective(Device record);
 
-	Device selectByPrimaryKey(Long id);
+	public Device selectByPrimaryKey(Long id);
 
-	int updateByPrimaryKeySelective(Device record);
+	public int updateByPrimaryKeySelective(Device record);
 
-	int updateByPrimaryKey(Device record);
+	public int updateByPrimaryKey(Device record);
 
 	/**
 	 * 

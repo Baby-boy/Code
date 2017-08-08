@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +75,7 @@ import com.glanway.iclock.util.TimeUtil;
  */
 @Component("iclock")
 public class ClockServlet extends HttpServlet {
-	
+
 	private static final long serialVersionUID = -2036458039532875830L;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClockServlet.class);
@@ -126,28 +127,17 @@ public class ClockServlet extends HttpServlet {
 	/** 设备推送指令执行结果URI. */
 	private static final String PUSH_COMMAND_RETURN_URI = "/iclock/devicecmd";
 
-	/** 一分钟的毫秒数. */
-	private static final long MINUTE_MILLIS = 60 * 1000;
-
 	private Charset charset = CommandWrapper.GB2312;
-
-	/**
-	 * 脏检查间隔, 单位分钟.
-	 * <p>
-	 * 用于检查设备删除对象, 如果该值 < 1 则表示禁用, 不检查设备删除对象.
-	 * </p>
-	 */
-	private int dirtyCheckPeriod = 1; // minutes
 
 	/**
 	 * 新设备接入时, 是否清空新设备数据.
 	 */
-	private boolean clearNewDevice = false;
+	// private boolean clearNewDevice = false;
 
 	/**
 	 * 已接入过的设备, 是否支持离线更新.
 	 */
-	private boolean offlineUpdate = true;
+	// private boolean offlineUpdate = true;
 
 	/** iclock 配置. */
 	private Properties props;
@@ -157,14 +147,15 @@ public class ClockServlet extends HttpServlet {
 	/**
 	 * 设备命令队列.
 	 */
-	private final Map<String, List<String>> commandQueue = new LinkedHashMap<>();
+	// private final Map<String, List<String>> commandQueue = new  LinkedHashMap<>();
 
 	/**
 	 * 设备及表最后访问时间.
 	 */
 	private final Map<String, String> devicesTableLastStamp = new LinkedHashMap<>();
 
-	private final Map<String, Long> devicesLastDirtyTimestamp = new ConcurrentHashMap<>();
+	// private final Map<String, Long> devicesLastDirtyTimestamp = new
+	// ConcurrentHashMap<>();
 
 	/**
 	 * 设备数据服务器端缓存.
@@ -174,11 +165,11 @@ public class ClockServlet extends HttpServlet {
 	/** 任务接口注入 */
 	@Autowired
 	private TaskService taskService;
-	
+
 	/** 员工接口注入 */
 	@Autowired
 	private EmployeeService employeeService;
-	
+
 	/** 员工的考勤信息接口注入 */
 	@Autowired
 	private EmployeeDeviceInfoService employeeDeviceInfoService;
@@ -222,12 +213,28 @@ public class ClockServlet extends HttpServlet {
 		final String requestUri = req.getRequestURI();
 		final String ua = req.getHeader("User-Agent");
 		final String sn = req.getParameter("SN");
+		final Date now = new Date();
+
+		// 不论考勤机是怎么发起请求进入服务器中,这台考勤机都得在系统中存在,不存在,则新建设备
+		Device device = deviceService.selectByDeviceSn(sn);// 查询该设备是否存在(未删除)
+		if (null == device) {
+			device = new Device();
+			device.setSn(sn);
+			device.setName("中控考勤机-" + sn);
+			// device.setIp(ip);// 第一次新建,不知道,后面进行维护
+			device.setFirstConnectionTime(now);
+			device.setLastConnectionTime(now);
+			device.setState(1);
+			device.setSyncState(1);
+			deviceService.saveDevice(device);
+		}
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("request '{}' from [{}]/[{}]", requestUri, ua, sn);
 		}
+
 		try {
-			// 必须是 http://host[:port]/iclock/*
+			/** 请求必须是 http://host[:port]/iclock/* */
 			if (PUSH_NS_URI.equals(requestUri)) {
 				resp.getWriter().write("OK");
 			} else if (PUSH_CFG_URI.equals(requestUri)) {
@@ -235,14 +242,12 @@ public class ClockServlet extends HttpServlet {
 			} else if (PUSH_INIT_URI.equals(requestUri) && null != sn) {
 				handleInitPush(sn, req, resp);
 			} else if (PULL_COMMANDS_URI.equals(requestUri) && null != sn) {
-				// 设备每隔 * s主动从服务器读取命令.
-				handlePull(sn, req, resp);
+				handlePull(sn, req, resp);// 设备每隔多少秒(Delay=120)主动从服务器读取命令.前提是设备第一次发送/iclock/cdata请求.
 			} else if (null == sn) {
 				resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Device not found");
 			} else {
 				resp.sendError(HttpServletResponse.SC_NOT_FOUND);
 			}
-
 		} catch (final Exception e) {
 			LOGGER.error("doget()报错:", e);
 		}
@@ -260,6 +265,20 @@ public class ClockServlet extends HttpServlet {
 		final String sn = req.getParameter("SN");
 		final Date now = new Date();
 
+		// 不论考勤机是怎么发起请求进入服务器中,这台考勤机都得在系统中存在,不存在,则新建设备
+		Device device = deviceService.selectByDeviceSn(sn);// 查询该设备是否存在(未删除)
+		if (null == device) {
+			device = new Device();
+			device.setSn(sn);
+			device.setName("中控考勤机-" + sn);
+			// device.setIp(ip);// 第一次新建,不知道,后面进行维护
+			device.setFirstConnectionTime(now);
+			device.setLastConnectionTime(now);
+			device.setState(1);
+			device.setSyncState(1);
+			deviceService.saveDevice(device);
+		}
+
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("POST '{}' from [{}]/[{}]", requestUri, ua, sn);
 		}
@@ -271,8 +290,7 @@ public class ClockServlet extends HttpServlet {
 
 			String line;
 			InputStreamReader inputStreamReader = new InputStreamReader(req.getInputStream(), charset.name());
-			// final BufferedReader reader = req.getReader(); // TODO encoding.
-			final BufferedReader reader = new BufferedReader(inputStreamReader); // TODO encoding.
+			final BufferedReader reader = new BufferedReader(inputStreamReader); 
 			if (TAB_ATTLOG.equals(table)) {
 				/** 3.2.3.1 上传考勤记录. */
 				while (null != (line = reader.readLine())) {
@@ -292,8 +310,8 @@ public class ClockServlet extends HttpServlet {
 						handlePhotoItem(sn, now, line.substring(8));
 					} else if (line.startsWith("FACE ")) { // 用户人脸模板
 						/**
-						 * (更新人脸后, 会先更新用户照片, 脸纹会更新较慢,大约照片更新后1~2分钟).
-						 * FACE PIN=1\tFID=2\tSIZE=1\tValid=1\tTMP=
+						 * (更新人脸后, 会先更新用户照片, 脸纹会更新较慢,大约照片更新后1~2分钟). FACE
+						 * PIN=1\tFID=2\tSIZE=1\tValid=1\tTMP=
 						 */
 						handleFaceItem(sn, now, line.substring(5));
 					} else if (line.startsWith("OPLOG ")) {
@@ -309,7 +327,8 @@ public class ClockServlet extends HttpServlet {
 			doResponse(resp, "OK");
 		} else if (PUSH_COMMAND_RETURN_URI.equals(requestUri)) {
 			String line;
-			final BufferedReader reader = req.getReader(); // TODO encoding.
+			InputStreamReader inputStreamReader = new InputStreamReader(req.getInputStream(), charset.name());
+			final BufferedReader reader = new BufferedReader(inputStreamReader); 
 			while (null != (line = reader.readLine())) {
 				final Map<String, String> result = tokenizeToMap(line, "&");
 				final String commandId = result.get("ID");
@@ -328,7 +347,8 @@ public class ClockServlet extends HttpServlet {
 					final String deviceId = null != dev ? dev : sn; // 设备ID.
 					final String deviceName = info.get("~DeviceName"); // 设备名称.
 					final String platform = info.get("~Platform"); // 设备平台.
-					final String pushVersion = info.get("PushVersion"); // PUSH SDK版本.
+					final String pushVersion = info.get("PushVersion"); // PUSH
+																		// SDK版本.
 					final String fingerVersion = info.get("FPVersion"); // 指纹版本.
 					final String faceVersion = info.get("FaceVersion"); // 脸纹版本.
 
@@ -356,7 +376,7 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	/*
-	 * ***************************************************************
+	 * *************************************************************
 	 * 设备配置信息/指令获取.
 	 * *************************************************************
 	 */
@@ -365,8 +385,8 @@ public class ClockServlet extends HttpServlet {
 	 * 3.2.2 设备读取服务器上的配置信息.
 	 * <p>
 	 * GET
-	 * /iclock/cadata?SN=xxx&options=all&pushver=2.1.1&language=83&pushcommonkey=xx
-	 * SN: 设备序列号 pushver: push SDK 协议版本. language: 语言 pushcommonkey
+	 * /iclock/cadata?SN=xxx&options=all&pushver=2.1.1&language=83&pushcommonkey
+	 * =xx SN: 设备序列号 pushver: push SDK 协议版本. language: 语言 pushcommonkey
 	 *
 	 * @param sn(设备序列号)
 	 * @param req(请求)
@@ -375,8 +395,9 @@ public class ClockServlet extends HttpServlet {
 	 */
 	private void handleInitPush(final String sn, final HttpServletRequest req, final HttpServletResponse resp)
 			throws IOException {
-		final String pushVersion = req.getParameter("pushver"); // pushver2.1.1 才支持.
-		final String pushKey = req.getParameter("pushcommkey");
+		final String pushVersion = req.getParameter("pushver"); // 版本(pushver2.1.1)才支持.
+		// final String pushKey = req.getParameter("pushcommkey");//
+		// 客户端与服务器绑定的密文信息(授权使用)
 		final String language = req.getParameter("language"); // 83=中文, 69=英文
 
 		/**
@@ -385,9 +406,11 @@ public class ClockServlet extends HttpServlet {
 		 * Delay: 为正常联网时联接服务器的间隔时间（秒） <br>
 		 * TransTimes: 为定时检查并传送新数据时间（HH:mm，24小时格式），多个时间用分号分开，最多支持10个时间 <br>
 		 * TransInterval: 为检查并传送新数据间隔时间（分钟） <br>
-		 * Realtime: 是否实时传送新记录.为1表示有新数据就传送到服务器,为0表示按照TransTimes和TransInterval规定的时间传送 <br>
-		 * TrasFlags: AttLog(考勤记录),OpLog(操作记录),AttPhoto(考勤照片),EnrollUser(录入新用户),ChgUser(修改用户),
-		 *            EnrollFP(录入指纹), ChgFP(修改指纹), FPImag(指纹图片), FACE(人脸登记), UserPic(用户照片).<br>
+		 * Realtime:
+		 * 是否实时传送新记录.为1表示有新数据就传送到服务器,为0表示按照TransTimes和TransInterval规定的时间传送 <br>
+		 * TrasFlags: AttLog(考勤记录), OpLog(操作记录), AttPhoto(考勤照片),
+		 * EnrollUser(录入新用户), ChgUser(修改用户), EnrollFP(录入指纹), ChgFP(修改指纹),
+		 * FPImag(指纹图片), FACE(人脸登记), UserPic(用户照片).<br>
 		 * </P>
 		 */
 		final Properties options = new Properties(props);
@@ -400,7 +423,7 @@ public class ClockServlet extends HttpServlet {
 			options.setProperty(tableName + "Stamp", stamp);
 		}
 
-		/**旧版协议兼容属性. */
+		/** 旧版协议兼容属性. */
 		options.setProperty("Stamp", options.getProperty(TAB_ATTLOG + "Stamp"));
 		options.setProperty("OpStamp", options.getProperty(TAB_OPERLOG + "Stamp"));
 		options.setProperty("PhotoStamp", options.getProperty(TAB_ATTPHOTO + "Stamp"));
@@ -415,8 +438,8 @@ public class ClockServlet extends HttpServlet {
 
 		final String cfg = buff.toString();
 
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("设备 [{}], PUSH SDK [{}], 语言 [{}] 初始化推送配置: {}", sn, pushVersion, language, cfg);
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("设备 [{}], PUSH SDK [{}], 语言 [{}] 初始化推送配置: {}", sn, pushVersion, language, cfg);
 		}
 
 		doResponse(resp, cfg);
@@ -431,118 +454,41 @@ public class ClockServlet extends HttpServlet {
 	 */
 	protected void handlePull(final String sn, final HttpServletRequest req, final HttpServletResponse resp)
 			throws IOException {
-		final String info = req.getParameter("INFO"); // 只有第一次会有。
+		final String info = req.getParameter("INFO"); // 设备第一次向服务器请求命令,或者设备新登记用户／指纹和有新的考勤记录时.
 		final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
 
-		LOGGER.debug("设备 {} 发送心跳", sn);
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("设备 {} 发送心跳", sn);
+		}
+
 		try {
-			final boolean newDevice = touch(sn, info);
+			// 该方法主要功能是维护设备的同步人数状态,以及设备的基本信息维护
+			final boolean newDevice = touch(sn, info);// 根据info信息判断是否是新设备,以及新登记用户／指纹和有新的考勤记录
 
 			Device device = deviceService.selectByDeviceSn(sn);
 			if (null != device) {
-				final Boolean deviceOnline = device.getState() == 2;
-				final boolean online = Boolean.TRUE.equals(deviceOnline);
-				
-				/** TODO 如果当前设备状态为异常(state = 3),就是离线状态  */
-				final boolean offline = device.getState() == 3;
-				
-				/**如果是新设备或离线重连.!online */
-				if (offline || !online) {
-					/**
-					 * 以下两种情况清空数据, 并写入服务器数据.
-					 * 
-					 * 1. 如果清空新设备, 且是新设备接入.
-					 * 2. 如果不支持离线更新, 且是历史设备接入.
-					 */
-					if ((clearNewDevice && newDevice) || !offlineUpdate) {
-						if (clearNewDevice && newDevice) {
-							// 清除考勤信息和考勤现场照片.
-							pushCommand(sn, CommandWrapper.CMD_CLEAR_LOG, CommandWrapper.DEV_INIT_CLEAR_LOG_ID_PREFIX + timestamp);
-							pushCommand(sn, CommandWrapper.CMD_CLEAR_PHOTO, CommandWrapper.DEV_INIT_CLEAR_PHOTO_ID_PREFIX + timestamp);
-						} else {
-							clearCommands(sn);
+				final Boolean deviceOnline = device.getState() == 2;// 当设备state=2时,说明设备在使用中
+				final Boolean deviceOffline = device.getState() == 1;// 当设备state=1时,说明设备未使用
+
+				if (deviceOffline || newDevice) {// 新设备接入,而且是未使用的设备
+//					pushCommand(sn, CommandWrapper.CMD_RELOAD_DATA,
+//							CommandWrapper.DEV_RELOAD_DATA_ID_PREFIX + timestamp);
+//					pushCommand(sn, CommandWrapper.CMD_RELOAD_OPTIONS,
+//							CommandWrapper.DEV_RELOAD_OPTIONS_ID_PREFIX + timestamp);
+				}
+
+				if (deviceOnline) {// 设备在使用,查询该设备存在的需要执行的命令
+					final String command = pullCommands(sn);
+
+					if (StringUtils.isNoneEmpty(command)) {
+						if (LOGGER.isInfoEnabled()) {
+							LOGGER.info("向设备{}下发命令:{}", sn, command);
 						}
-
-						// 清空新设备或不支持离线更新, 清空用户用户信息.
-						pushCommand(sn, CommandWrapper.CMD_CLEAR_ALL_USERINFO, CommandWrapper.DEV_INIT_CLEAR_ALL_USER_ID_PREFIX + timestamp);
+						doResponse(resp, command);
 					}
-
-					/** 新考勤机或断线重连但不支持离线更新.使用服务器数据覆盖考勤机数据  */
-					if (newDevice || !offlineUpdate) {
-						final int count = pushInitDataTo(sn);
-						pushCommand(sn, CommandWrapper.CMD_RELOAD_DATA, CommandWrapper.DEV_RELOAD_DATA_ID_PREFIX + timestamp);
-						pushCommand(sn, CommandWrapper.CMD_RELOAD_OPTIONS, CommandWrapper.DEV_RELOAD_OPTIONS_ID_PREFIX + timestamp);
-						pushCommand(sn, CommandWrapper.CMD_LOG, CommandWrapper.DEV_INIT_OVER_ID_PREFIX + timestamp);
-						if (0 < count) {
-							pushCommand(sn, CommandWrapper.CMD_REBOOT, timestamp); // FIXME
-						}
-					} else {
-						// 不是新设备且支持离线更新.
-						pushCommand(sn, CommandWrapper.CMD_LOG, CommandWrapper.DEV_INIT_OVER_ID_PREFIX + timestamp);
-					}
-				} 
-				
-				// TODO 脏检查实时发改为定时器任务 2017-07-03修改
-//				else {
-//					final long now = new Date().getTime();
-//					final Long lastDirtyTimestamp = devicesLastDirtyTimestamp.get(sn);
-//					final long lastTimestamp = null != lastDirtyTimestamp ? lastDirtyTimestamp : 0;
-//
-//					/*-
-//					 * 需要脏检查, 则下发脏检查指令.
-//					 */
-//					if (0 < dirtyCheckPeriod && now - lastTimestamp > dirtyCheckPeriod * MINUTE_MILLIS) {
-//
-//						LOGGER.info("给设备{}下发脏检查指令", sn);
-//
-//						devicesLastDirtyTimestamp.put(sn, now);
-//
-//						/*
-//						// pushCommand(sn, CMD_CHECK, DEV_DIRTY_CHECK_ID_PREFIX
-//						// +
-//						// timestamp);
-//						pushCommand(sn, CMD_DATA_QUERY_USER_ALL, DEV_DIRTY_CHECK_USER_ID_PREFIX + timestamp);
-//						pushCommand(sn, CMD_DATA_QUERY_FINGER_ALL, DEV_DIRTY_CHECK_FINGER_ID_PREFIX + timestamp);
-//						pushCommand(sn, CMD_DATA_QUERY_PHOTO_ALL, DEV_DIRTY_CHECK_PHOTO_ID_PREFIX + timestamp);
-//						pushCommand(sn, CMD_DATA_QUERY_FACE_ALL, DEV_DIRTY_CHECK_FACE_ID_PREFIX + timestamp);
-//						*/
-//						devicesTableLastStamp.put(sn + "-" + TAB_OPERLOG, "0");
-//						/*
-//						 * TODO 判断配置文件中,ISSYNCDATA(是否同步数据字段)=1时,就给执行脏检测
-//						 */
-//						//final Properties options = new Properties(props);
-//						final Properties defaults = load(ClockServlet.class, DEFAULT_CFG_LOCATION, null);
-//						String isSyncData= (String) defaults.get("IsSyncData");
-//						if(null != isSyncData && "1".equals(isSyncData)){
-//							//脏检查
-//							pushCommand(sn, CMD_CHECK, DEV_DIRTY_CHECK_ID_PREFIX + timestamp);
-//						}
-//					}
-//				}
-
+				}
 			}
-
-			/** 获取当前设备指令队列中的指令, 并下发 */
-			final StringBuilder buff = new StringBuilder();
-			final String[] commands = pullCommands(sn);
-			for (final String cmd : commands) {
-				buff.append(cmd).append("\n");
-			}
-			
-			if (0 < buff.length()) {
-				LOGGER.debug("向设备{}下发命令:{}", sn, buff);
-			}
-			
-			// TODO 不需要实时发送数据,防止影响考勤效率 2017-07-03修改
-			// 如果没有任何指令就返回LOG指令.
-			// if (1 > buff.length()) {
-			// buff.append(String.format(CMD_LOG, "PING-" + timestamp));
-			// }
-
-
-			doResponse(resp, buff.toString());
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			LOGGER.info("请求获取给定考勤机指令-handlePull():" + e);
 		}
@@ -570,7 +516,8 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	/*
-	 * *************************************************************** 设备信息上报.
+	 * *************************************************************
+	 * 设备信息上报.
 	 * *************************************************************
 	 */
 
@@ -588,7 +535,8 @@ public class ClockServlet extends HttpServlet {
 
 		final String pin = infos[0]; // 考勤号码
 		final String time = infos[1]; // 考勤时间, yyyy-MM-dd HH:mm:ss
-		final String status = infos[2];// 考勤状态, 0-上班签到 1-下班签退 2-外出 3-外出返回 4-加班签到 5-加班签退 8-就餐开始 9-就餐结束
+		final String status = infos[2];// 考勤状态, 0-上班签到 1-下班签退 2-外出 3-外出返回 4-加班签到
+										// 5-加班签退 8-就餐开始 9-就餐结束
 		final String verify = infos[3]; // 验证方式, 0=密码, 1=指纹, 2=卡, 9=其他
 
 		final Map<String, String> verifyMap = new HashMap<String, String>();
@@ -599,25 +547,25 @@ public class ClockServlet extends HttpServlet {
 		verifyMap.put("16", "脸纹");
 
 		final String type = verifyMap.get(verify);
-		LOGGER.info("系统存储从考勤机返回的考勤时间: {}" , time);
-		final Date newDate=DateUtils.str2Date(time, DateUtils.DATETIME_FORMAT_YYYY_MM_DD_HHMMSS);
-		LOGGER.info("系统格式化后的考勤机考勤时间: {}" , newDate);
-		
+		LOGGER.info("系统存储从考勤机返回的考勤时间: {}", time);
+		final Date newDate = DateUtils.str2Date(time, DateUtils.DATETIME_FORMAT_YYYY_MM_DD_HHMMSS);
+		LOGGER.info("系统格式化后的考勤机考勤时间: {}", newDate);
+
 		// 获取newDate的前一分钟值 , 为了过滤同一人短时间重复打卡的
 		final Date beforeDate = TimeUtil.getTimeBeforeMinute(newDate, -1);
-		LOGGER.info("系统格式化后的考勤机考勤时间的前一分钟: {}" , beforeDate);
-		
-		Map<String, Object> params = new HashMap<String,Object>();
+		LOGGER.info("系统格式化后的考勤机考勤时间的前一分钟: {}", beforeDate);
+
+		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("employeeCode", pin);
 		params.put("sn", sn);
 		params.put("time", newDate);
 		params.put("beforeDate", beforeDate);
-		params.put("state",status);
+		params.put("state", status);
 		params.put("verify", verify);
-		
+
 		/** 当数据库里面有当前这条考勤记录,就不保存 */
-		int count= signService.count(params);
-		if(count == 0){
+		int count = signService.count(params);
+		if (count == 0) {
 			Sign sign = new Sign();
 			sign.setEmployeeCode(pin);
 			sign.setSn(sn);
@@ -653,7 +601,11 @@ public class ClockServlet extends HttpServlet {
 		empl1.setPwd(password);
 		empl1.setCard(card);
 		int result = isChangedEmployeeInfo(1, empl1);
-		/** result = {0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:员工基本信息没有存储(但是表中有员工信息记录)} */
+		/**
+		 * result =
+		 * {0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:员工基本信息没有存储(
+		 * 但是表中有员工信息记录)}
+		 */
 		if (result == 1) {
 			empl1.setCreatedDate(new Date());
 			empl1.setDeleted("0");
@@ -685,7 +637,8 @@ public class ClockServlet extends HttpServlet {
 		cacheDeviceItem(sn, TAB_USERINFO, pin, timestamp + "|" + item);
 		cacheDeviceItem("*", TAB_USERINFO, pin, item);
 
-		//pushMulticastCommand(sn, CMD_DATA_UPDATE_USER, "SYNC_UR-" + sn + "-" + timestamp, item);
+		// pushMulticastCommand(sn, CMD_DATA_UPDATE_USER, "SYNC_UR-" + sn + "-"
+		// + timestamp, item);
 	}
 
 	protected void handleFingerprintItem(final String sn, final Date now, final String item) {
@@ -713,7 +666,11 @@ public class ClockServlet extends HttpServlet {
 			/**
 			 * 将设备上传的数据和数据库里面做比较 如果没有变动,就不做处理 如果发生变化,就做修改 如果服务器中没有这个数据,就插入数据库
 			 */
-			/** result = {0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp),4:设备在该次上传的中tmp为空} */
+			/**
+			 * result =
+			 * {0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp),4:
+			 * 设备在该次上传的中tmp为空}
+			 */
 			int result = isChangedFingerItmp(fft);
 
 			if (result == 1 || result == 3) {
@@ -734,16 +691,17 @@ public class ClockServlet extends HttpServlet {
 			}
 
 			/*
-			 * if (isChangedItem(sn, TAB_FINGERTMP, key, item)) {
-			 * LOGGER.debug("设备{}上用户{} 指纹 {} 发生变动, 有效性: {}, 指纹: {}", sn, pin,
-			 * fid, valid, finger); }
+			 * if (isChangedItem(sn, TAB_FINGERTMP, key, item)) { LOGGER.debug(
+			 * "设备{}上用户{} 指纹 {} 发生变动, 有效性: {}, 指纹: {}", sn, pin, fid, valid,
+			 * finger); }
 			 */
 
 			// 缓存设备信息, 用于删除脏检查.
 			cacheDeviceItem(sn, TAB_FINGERTMP, key, timestamp + "|" + item);
 			cacheDeviceItem("*", TAB_FINGERTMP, key, item);
 
-			//pushMulticastCommand(sn, CMD_DATA_UPDATE_FINGER, "SYNC_FP" + sn + "-" + timestamp, item);
+			// pushMulticastCommand(sn, CMD_DATA_UPDATE_FINGER, "SYNC_FP" + sn +
+			// "-" + timestamp, item);
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.debug("设备{}上穿用户基本信息发生异常:{}", sn, e.getMessage());
@@ -761,21 +719,24 @@ public class ClockServlet extends HttpServlet {
 			final String photo = 0 < size ? content.substring(0, size) : content;
 
 			/*
-			 * if (isChangedItem(sn, TAB_USERPIC, pin, item)) {
-			 * LOGGER.info("设备{}上用户{} 头像 {} 发生变动, 内容: {}", sn, pin, filename,
-			 * photo); }
+			 * if (isChangedItem(sn, TAB_USERPIC, pin, item)) { LOGGER.info(
+			 * "设备{}上用户{} 头像 {} 发生变动, 内容: {}", sn, pin, filename, photo); }
 			 */
 			EmployeeDeviceInfo empl1 = new EmployeeDeviceInfo();
 			empl1.setEmployeeCode(pin);
 			empl1.setPic(photo);
 			int result = isChangedEmployeeInfo(2, empl1);
-			/** result = {0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:员工基本信息没有存储(但是表中有员工信息记录)} */
+			/**
+			 * result =
+			 * {0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:员工基本信息没有存储(
+			 * 但是表中有员工信息记录)}
+			 */
 			if (result == 1) {
 				empl1.setCreatedDate(new Date());
 				empl1.setDeleted("0");
-				
+
 				empl1.setLastModifiedDate(new Date());
-				
+
 				employeeDeviceInfoService.save(empl1);
 				LOGGER.info("设备{}上用户{} 头像 {} 新增, 内容: {}", sn, pin, filename, photo);
 			} else if (result == 2 || result == 3) {
@@ -791,7 +752,8 @@ public class ClockServlet extends HttpServlet {
 			cacheDeviceItem(sn, TAB_USERPIC, pin, timestamp + "|" + item);
 			cacheDeviceItem("*", TAB_USERPIC, pin, item);
 
-			//pushMulticastCommand(sn, CMD_DATA_UPDATE_PHOTO, "SYNC_PT-" + sn + "-" + timestamp, item);
+			// pushMulticastCommand(sn, CMD_DATA_UPDATE_PHOTO, "SYNC_PT-" + sn +
+			// "-" + timestamp, item);
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.debug("设备{}上穿用户头像信息发生异常:{}", sn, e.getMessage());
@@ -821,7 +783,11 @@ public class ClockServlet extends HttpServlet {
 			/**
 			 * 将设备上传的数据和数据库里面做比较 如果没有变动,就不做处理 如果发生变化,就做修改 如果服务器中没有这个数据,就插入数据库
 			 */
-			/** result = {0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp),4:设备在该次上传的中tmp为空} */
+			/**
+			 * result =
+			 * {0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp),4:
+			 * 设备在该次上传的中tmp为空}
+			 */
 			int result = isChangedFingerItmp(fft);
 
 			if (result == 1 || result == 3) {
@@ -843,14 +809,15 @@ public class ClockServlet extends HttpServlet {
 			}
 
 			/*
-			 * if (isChangedItem(sn, TAB_FACE, key, item)) {
-			 * LOGGER.info("设备{}上用户{} 脸纹 {} 发生变动, 有效性: {}, 脸纹: {}", sn, pin,
-			 * fid, valid, face); }
+			 * if (isChangedItem(sn, TAB_FACE, key, item)) { LOGGER.info(
+			 * "设备{}上用户{} 脸纹 {} 发生变动, 有效性: {}, 脸纹: {}", sn, pin, fid, valid,
+			 * face); }
 			 */
 
 			cacheDeviceItem(sn, TAB_FACE, pin + "-" + fid, timestamp + "|" + item);
 			cacheDeviceItem("*", TAB_FACE, pin + "-" + fid, item);
-			//pushMulticastCommand(sn, CMD_DATA_UPDATE_FACE, "SYNC_FE-" + sn + "-" + timestamp, item);
+			// pushMulticastCommand(sn, CMD_DATA_UPDATE_FACE, "SYNC_FE-" + sn +
+			// "-" + timestamp, item);
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.debug("设备{}上穿用户脸部模板信息发生异常:{}", sn, e.getMessage());
@@ -862,7 +829,9 @@ public class ClockServlet extends HttpServlet {
 	 * 说明 : 检查员工的指纹和人脸是否存在或发生变动
 	 * 
 	 * @param fingerFaceTemplate
-	 * @return result = {0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp),4:设备在该次上传的中tmp为空}
+	 * @return result =
+	 *         {0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp),4:
+	 *         设备在该次上传的中tmp为空}
 	 * @author zhangshaung
 	 * @dateTime 2017年4月19日 下午5:12:35
 	 */
@@ -904,71 +873,73 @@ public class ClockServlet extends HttpServlet {
 	 * 
 	 * @param type
 	 * @param employeeDeviceInfo
-	 * @return result = {0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:员工基本信息没有存储(但是表中有员工信息记录)}
+	 * @return result =
+	 *         {0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:员工基本信息没有存储(
+	 *         但是表中有员工信息记录)}
 	 * @author zhangshaung
 	 * @dateTime 2017年4月19日 下午5:12:35
 	 */
-    private int isChangedEmployeeInfo(final int type, final EmployeeDeviceInfo employeeDeviceInfo) {
-        int result = 0;
-        try {
-            // 根据职员代码查询该员工是否已经离职,若离职则不插入职位模板, 修改于 20170531 am 9:51
-            Employee employee = employeeService.findOne(employeeDeviceInfo.getEmployeeCode());
-            if (null != employee) {
-                EmployeeDeviceInfo oldEmployeeDeviceInfo = employeeDeviceInfoService
-                    .getInfoByEmployeeCode(employeeDeviceInfo.getEmployeeCode());
+	private int isChangedEmployeeInfo(final int type, final EmployeeDeviceInfo employeeDeviceInfo) {
+		int result = 0;
+		try {
+			// 根据职员代码查询该员工是否已经离职,若离职则不插入职位模板, 修改于 20170531 am 9:51
+			Employee employee = employeeService.findOne(employeeDeviceInfo.getEmployeeCode());
+			if (null != employee) {
+				EmployeeDeviceInfo oldEmployeeDeviceInfo = employeeDeviceInfoService
+						.getInfoByEmployeeCode(employeeDeviceInfo.getEmployeeCode());
 
-                if (null != oldEmployeeDeviceInfo) {
-                    int flag = 0;
-                    if (type == 1) {
-                        if (null == oldEmployeeDeviceInfo.getPri() && null == oldEmployeeDeviceInfo.getPwd()
-                            && null == oldEmployeeDeviceInfo.getCard()) {
-                            flag = 3;
-                        } else {
-                            if (null != employeeDeviceInfo.getPri()) {
-                                if (!employeeDeviceInfo.getPri().equals(oldEmployeeDeviceInfo.getPri())) {
-                                    flag = 1;
-                                }
-                            }
-                            if (null != employeeDeviceInfo.getPwd()) {
-                                if (!employeeDeviceInfo.getPwd().equals(oldEmployeeDeviceInfo.getPwd())) {
-                                    flag = 1;
-                                }
-                            }
-                            if (null != employeeDeviceInfo.getCard()) {
-                                if (!employeeDeviceInfo.getCard().equals(oldEmployeeDeviceInfo.getCard())) {
-                                    flag = 1;
-                                }
-                            }
-                        }
-                    } else if (type == 2) {
-                        if (null != employeeDeviceInfo.getPic()) {
-                            if (!employeeDeviceInfo.getPic().equals(oldEmployeeDeviceInfo.getPic())) {
-                                flag = 1;
-                            }
-                        } else {
-                            flag = 2;
-                        }
+				if (null != oldEmployeeDeviceInfo) {
+					int flag = 0;
+					if (type == 1) {
+						if (null == oldEmployeeDeviceInfo.getPri() && null == oldEmployeeDeviceInfo.getPwd()
+								&& null == oldEmployeeDeviceInfo.getCard()) {
+							flag = 3;
+						} else {
+							if (null != employeeDeviceInfo.getPri()) {
+								if (!employeeDeviceInfo.getPri().equals(oldEmployeeDeviceInfo.getPri())) {
+									flag = 1;
+								}
+							}
+							if (null != employeeDeviceInfo.getPwd()) {
+								if (!employeeDeviceInfo.getPwd().equals(oldEmployeeDeviceInfo.getPwd())) {
+									flag = 1;
+								}
+							}
+							if (null != employeeDeviceInfo.getCard()) {
+								if (!employeeDeviceInfo.getCard().equals(oldEmployeeDeviceInfo.getCard())) {
+									flag = 1;
+								}
+							}
+						}
+					} else if (type == 2) {
+						if (null != employeeDeviceInfo.getPic()) {
+							if (!employeeDeviceInfo.getPic().equals(oldEmployeeDeviceInfo.getPic())) {
+								flag = 1;
+							}
+						} else {
+							flag = 2;
+						}
 
-                    }
-                    if (flag == 0) {// 没有变化
-                        result = 0;
-                    } else if (flag == 1) {// 出现变化
-                        result = 2;
-                    } else if (flag == 2) {// 没有存储过照片
-                        result = 3;
-                    } else if (flag == 3) {// 没有存储过员工基本信息
-                        result = 4;
-                    }
-                } else {
-                    result = 1;
-                }
-            }
+					}
+					if (flag == 0) {// 没有变化
+						result = 0;
+					} else if (flag == 1) {// 出现变化
+						result = 2;
+					} else if (flag == 2) {// 没有存储过照片
+						result = 3;
+					} else if (flag == 3) {// 没有存储过员工基本信息
+						result = 4;
+					}
+				} else {
+					result = 1;
+				}
+			}
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
 
 	/**
 	 * 
@@ -1043,8 +1014,7 @@ public class ClockServlet extends HttpServlet {
 
 			// 根据任务ID,修改设备SN未执行(state=1)的命令的状态为完成(state=3)
 			/**
-			 * 如果是业务命令, 则应该对应的业务命令状态.
-			 * 如果是业务命令, 不会包含-
+			 * 如果是业务命令, 则应该对应的业务命令状态. 如果是业务命令, 不会包含-
 			 */
 			final int index = commandId.indexOf("-");
 			if (0 > index) {
@@ -1067,11 +1037,14 @@ public class ClockServlet extends HttpServlet {
 				LOGGER.info("设备{} 从服务器初始化完成", sn);
 				devices.put(sn, Boolean.TRUE);
 			} else if ("CHECK".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX)) {
-				final String dirtyCheckTimestamp = commandId.substring(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX.length());
+				final String dirtyCheckTimestamp = commandId
+						.substring(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX.length());
 				doDirtyCheck(sn, dirtyCheckTimestamp);
-			} else if ("DATA".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX)) {
+			} else if ("DATA".equals(commandType)
+					&& commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX)) {
 				// face 是最后执行的一个命令, 因此这个命令的执行结束后执行脏检查.
-				final String dirtyCheckTimestamp = commandId.substring(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX.length());
+				final String dirtyCheckTimestamp = commandId
+						.substring(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX.length());
 				doDirtyCheck(sn, dirtyCheckTimestamp);
 			}
 		}
@@ -1096,8 +1069,8 @@ public class ClockServlet extends HttpServlet {
 			task.setSn(sn);
 			task.setState(1);
 
-			/** 将args[] 转换成String类型,中间用""隔开  */
-			task.setArgs(StringUtil.stringArrToString(args, ""));	// FIXME
+			/** 将args[] 转换成String类型,中间用""隔开 */
+			task.setArgs(StringUtil.stringArrToString(args, "")); // FIXME
 			task.setCommand(command);
 			task.setCreatedDate(new Date());
 			task.setDeleted("0");
@@ -1130,7 +1103,7 @@ public class ClockServlet extends HttpServlet {
 		/** TODO 需要查询数据库中 需要查询数据库中所有的能接通(state = 2)的设备 来下发命令 */
 		try {
 			// Device device1=deviceService.selectByDeviceSn(sn);
-			
+
 			/** 查询所有在线设备 */
 			final Map<String, Object> params = new HashMap<String, Object>();
 			// params.put("state", 2);
@@ -1140,37 +1113,34 @@ public class ClockServlet extends HttpServlet {
 			for (final Device device : deviceList) {
 				/** 给所有非当前设备下发同步命令. */
 				if (!device.getSn().equals(sn)) {
-					/*需要先清除数据清除*/
-					//clearUserInfoAll(device.getSn());
+					/* 需要先清除数据清除 */
+					// clearUserInfoAll(device.getSn());
 					/**
 					 * TODO 需要在数据库中根据不同的命令,查询不同设备下的信息,拼接到命令上去
 					 */
 					/*
-					List<String> paramList = null;
-					if (command.equals(CMD_DATA_UPDATE_USER)) {
-						// 修改员工基本信息
-						paramList = deviceService.updateUserInfoDataBySn(device.getSn());
-					} else if (command.equals(CMD_DATA_UPDATE_FINGER)) {
-						// 修改指纹模板
-						paramList = deviceService.updateUserFingerTmpDataBySn(device.getSn());
-					} else if (command.equals(CMD_DATA_UPDATE_FACE)) {
-						// 修改面部模板
-						paramList = deviceService.updateUserFaceTmpDataBySn(device.getSn());
-					} else if (command.equals(CMD_DATA_UPDATE_PHOTO)) {
-						// 修改员工头像
-						paramList = deviceService.updateUserPhoneDataBySn(device.getSn());
-					}
-					if(null !=paramList){
-						for (String param:paramList) {
-							pushCommand(device.getSn(), command, param);
-						}
-						
-					}
-					*/
+					 * List<String> paramList = null; if
+					 * (command.equals(CMD_DATA_UPDATE_USER)) { // 修改员工基本信息
+					 * paramList =
+					 * deviceService.updateUserInfoDataBySn(device.getSn()); }
+					 * else if (command.equals(CMD_DATA_UPDATE_FINGER)) { //
+					 * 修改指纹模板 paramList =
+					 * deviceService.updateUserFingerTmpDataBySn(device.getSn())
+					 * ; } else if (command.equals(CMD_DATA_UPDATE_FACE)) { //
+					 * 修改面部模板 paramList =
+					 * deviceService.updateUserFaceTmpDataBySn(device.getSn());
+					 * } else if (command.equals(CMD_DATA_UPDATE_PHOTO)) { //
+					 * 修改员工头像 paramList =
+					 * deviceService.updateUserPhoneDataBySn(device.getSn()); }
+					 * if(null !=paramList){ for (String param:paramList) {
+					 * pushCommand(device.getSn(), command, param); }
+					 * 
+					 * }
+					 */
 					if (args.length > 2) {
 						throw new IllegalStateException();
 					}
-					pushCommand(device.getSn(), command, args.length < 3 ? new String[] {args[1]} : new String[0]);
+					pushCommand(device.getSn(), command, args.length < 3 ? new String[] { args[1] } : new String[0]);
 				}
 			}
 		} catch (Exception e) {
@@ -1179,32 +1149,33 @@ public class ClockServlet extends HttpServlet {
 			LOGGER.info("设备{},从任务表中取得命令{} ,参数{} 报错{}", sn, command, args, e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * 说明 : 清除所有数据
+	 * 
 	 * @param sn
 	 * @author zhangshaung
 	 * @dateTime 2017年4月25日 下午5:54:06
 	 */
-	public void clearUserInfoAll(String sn){
-		Task clearTask =new Task();
+	public void clearUserInfoAll(String sn) {
+		Task clearTask = new Task();
 		clearTask.setId(null);
 		clearTask.setSn(sn);
 		clearTask.setState(1);
-        /** 将args[] 转换成String类型,中间用""隔开  */
-        List<String>  clearParam=deviceService.updateUserInfoDataBySn(sn);
-        if(null != clearParam){
-        	for(String param : clearParam){
-        		clearTask.setArgs(param);
-		        clearTask.setCommand(CommandWrapper.CMD_CLEAR_DATA);
-		        clearTask.setCreatedDate(new Date());
-		        clearTask.setDeleted("0");
-		        
-		        taskService.save(clearTask);
-        	}
-        }
+		/** 将args[] 转换成String类型,中间用""隔开 */
+		List<String> clearParam = deviceService.updateUserInfoDataBySn(sn);
+		if (null != clearParam) {
+			for (String param : clearParam) {
+				clearTask.setArgs(param);
+				clearTask.setCommand(CommandWrapper.CMD_CLEAR_DATA);
+				clearTask.setCreatedDate(new Date());
+				clearTask.setDeleted("0");
+
+				taskService.save(clearTask);
+			}
+		}
 	}
-	
+
 	protected int pushInitDataTo(final String sn) {
 		/** TODO 需要查询数据库中 */
 		final Set<String> userKeys = getCachedDeviceItemKeys("*", TAB_USERINFO);
@@ -1223,12 +1194,8 @@ public class ClockServlet extends HttpServlet {
 	 * @dateTime 2017年4月18日 下午4:21:25
 	 */
 	protected void clearCommands(final String sn) {
-		final List<String> queue = commandQueue.get(sn);
-		if (null != queue) {
-			queue.clear();
-		}
 		try {
-			/** 从数据库里面清除设备SN的命令任务  */
+			/** 从数据库里面清除设备SN的命令任务 */
 			int clearCount = taskService.chearCommandsBySn(sn);
 			LOGGER.info("设备{}清除命令记录数为:{}", sn, clearCount);
 
@@ -1246,50 +1213,40 @@ public class ClockServlet extends HttpServlet {
 	 * @author zhangshaung
 	 * @dateTime 2017年4月18日 下午5:23:33
 	 */
-	protected String[] pullCommands(final String sn) {
+	protected String pullCommands(final String sn) {
 		try {
 			// 从数据库中获取设备SN的命令列表
 			Map<String, Object> params = new HashMap<String, Object>();
 			params.put("sn", sn);
 			// 命令状态为未处理的(state=1)
 			params.put("state", 1);
-			// List<Task> commandList=taskService.findMany(params);
-			// 从数据库中取前20条
-			List<Task> commandList = taskService.findManyBeforeSize(params);
-			List<String> queue = new ArrayList<String>();
-			for (Task task : commandList) {
-				if (null != task.getCommand()) {
-					/** 将命令的ID 存到命令中 如 当前这条命令的ID=1 命令为"C:%s:DATA UPDATE USERINFO%s" 就要替换成:"C:1:DATA UPDATE USERINFO 1"*/
-					String command = task.getCommand();
-					if (null != command) {
-						String args = task.getArgs();
+			// 命令只能是一条一条执行(所有返回的数据只会是一条)
+			Task task = taskService.findOneTask(params);
+			if (task != null) {
+				String command = task.getCommand();
+				if (null != command) {
+					/**
+					 * 将命令的ID 存到命令中 如 当前这条命令的ID=1 命令为
+					 * "C:%s:DATA UPDATE USERINFO%s" 就要替换成:
+					 * "C:1:DATA UPDATE USERINFO 1"
+					 */
+					String args = task.getArgs();
+					if (null != args) {
 						if (StringUtil.hasChinese(args)) {
-							// args = new String(args.getBytes(), GB2312.name());
+							// args = new String(args.getBytes(), CommandWrapper.GB2312.name());
 						}
-						command = String.format(command, task.getId().toString(), args);
-						queue.add(command);
+						command = String.format(task.getCommand(), task.getId().toString(), args);
 					}
-					/*
-					String command = null == task.getCommand() ? task.getCommand()
-							: task.getCommand().replaceFirst("%s", "" + task.getId().toString() + "");
-					queue.add(String.format(command, task.getArgs()));
-					*/
 				}
 				// 根据任务ID,修改设备SN未执行(state=1)的命令的状态为处理中(state=2)
 				taskService.updateStateById(task.getId(), 2, null);
+				return command;
 			}
-			if (null != queue) {
-				final String[] commands = queue.toArray(new String[queue.size()]);
-				queue.clear();
-				return commands;
-			}
-
-			return new String[0];
-		} catch (Exception e) {
+		}catch(Exception e) {
 			e.printStackTrace();
 			LOGGER.info("设备{}获取命令列表失败,报错信息{}", sn, e.getMessage());
 		}
-		return new String[0];
+		return null;
 	}
 
 	private void cacheDeviceItem(final String sn, final String tab, final String key, final String value) {
@@ -1405,7 +1362,7 @@ public class ClockServlet extends HttpServlet {
 
 			}
 			if (flag) {
-				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_USER, "PIN=" + pin );
+				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_USER, "PIN=" + pin);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1431,7 +1388,7 @@ public class ClockServlet extends HttpServlet {
 				}
 			}
 			if (flag) {
-				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_PHOTO, "PIN=" + pin );
+				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_PHOTO, "PIN=" + pin);
 			}
 
 		} catch (Exception e) {
@@ -1457,7 +1414,7 @@ public class ClockServlet extends HttpServlet {
 				}
 			}
 			if (flag) {
-				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_FINGER, "PIN=" + pin + "\t" + "FID=" + fid );
+				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_FINGER, "PIN=" + pin + "\t" + "FID=" + fid);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1497,16 +1454,15 @@ public class ClockServlet extends HttpServlet {
 	 */
 	protected boolean touch(final String sn, final String info) {
 		try {
-			Device device = deviceService.selectByDeviceSn(sn);
-			Date date = new Date();
+			final Date now = new Date();
 			/**
-			 * INFO:[固件版本号,登记用户数,登记指纹数,考勤记录数,考勤机IP,指纹算法版本,人脸算法版本,注册人脸时所需模板个数,登记人脸数,设备支持功能标识]
-			 * 设备支持功能标识:<br>
+			 * INFO:[固件版本号,登记用户数,登记指纹数,考勤记录数,考勤机IP,指纹算法版本,人脸算法版本,注册人脸时所需模板个数,
+			 * 登记人脸数,设备支持功能标识] 设备支持功能标识:<br>
 			 * 第一位: FP,是否支持指纹下载,1 支持,0不支持<br>
 			 * 第二位: FACE,是否支持脸部下载<br>
 			 * 第三位: USERPIC,是否支持用户照片下载<br>
 			 */
-			if (null != info) {
+			if (null != info) {// 是新设备,或者设备新登记用户／指纹和有新的考勤记录
 				final String[] infoArray = tokenizeToArray(info, ",");
 				final String version = 0 < infoArray.length ? infoArray[0] : null; // 固件版本.
 				final String userCount = 1 < infoArray.length ? infoArray[1] : null; // 登记用户数.
@@ -1519,89 +1475,19 @@ public class ClockServlet extends HttpServlet {
 				final String faceCount = 8 < infoArray.length ? infoArray[8] : null; // 登记人脸数.
 				final String supported = 9 < infoArray.length ? infoArray[9] : null; // 支持功能标记.
 
-				/**
-				 * 先在数据库中检查,当前接入设备在数据库中有没有记录, 如果没有,就插入当前接入设备的信息
-				 * 如果有,就更新数据库中的第一次连接的时间
-				 */
-				if (null == device) {
-					device = new Device();
+				syncDeviceInfo(sn, now, userCount, ip);// 同步设备信息
 
-					device.setSn(sn);
-					device.setName("中控考勤机-" + sn);
-					device.setIp(ip);
-					device.setFirstConnectionTime(date);
-					device.setLastConnectionTime(date);
-					device.setState(1);
-					device.setSyncState(1);
-					deviceService.saveDevice(device);
-				} else {
-					device.setIp(ip);
-					/** 查询在使用的设备(考勤点不为空) */
-					Device dev = deviceService.selectSignPointNotNullByDeviceSn(sn);
-					if(null != dev){
-    					 //应该同步的人数
-    					int totalPeople = deviceService.countEmployeeBySn(sn);
-    					device.setTotalPeople(totalPeople > 0 ? totalPeople : 0l);
-    					
-    					//设备已同步人数(这里获取的是设备上的人员数据,不能排查出脏数据,所有需要改动成手动获取的情况) 修改于2017/06/05 pm 14:00
-                        Long syncPeopleCount = null != userCount ? Long.parseLong(userCount) : 0l;
-                        // 现阶段考勤机中如果存在脏数据不能够清除,所以为了让数据显示正确,需要手动查询一次
-    					Long syncPeople = deviceService.syncPeopleCountEmployeeBySn(sn);
-    					LOGGER.info("考勤机已同步的人数是: {}", syncPeople);
-                        
-    					//未同步人数
-    					long unsyncPeople = totalPeople-syncPeople;
-    					long unsyncPeopleCount = totalPeople - syncPeopleCount;
-    					
-    					// 修改于20170526 13:51 原来是等于,现发现考勤机上存在脏数据后,导致未同步人数为负数,所以修改为小于等于
-    					if(unsyncPeopleCount <= 0 && unsyncPeople == 0){
-    						//如果同步人数大于0,同步状态为 已同步
-    						device.setSyncState(3);
-    					}else{
-    						// 根据设备序列号查询该设备的更新命令是否已经执行完成
-    						List<Task> list = taskService.findTaskByDeviceSn(sn);
-    						if (null == list || list.size() < 1) {
-    							// 命令执行完毕了但是还是不相等,说明有未同步的人
-    							device.setSyncState(1);
-							}
-    					}
-    					LOGGER.info("未同步的人数是: {}", unsyncPeople);
-    					device.setUnsyncPeople(unsyncPeople > 0 ? unsyncPeople : 0l);
-    					// 考勤点不为空,状态为使用
-    					device.setState(2);
-                    }
-					//设备未同步数
-					device.setLastConnectionTime(date);
-					device.setLastModifiedDate(date);
-
-					deviceService.updateByPrimaryKeySelective(device);
-				}
-				
-				boolean finger = false; // 是否支持指纹下载.
-				boolean face = false; // 是否支持脸部下载.
-				boolean userPic = false; // 是否支持用户照片下载.
-				if (null != supported && 2 < supported.length()) {
-					finger = supported.charAt(0) - '0' > 0;
-					face = supported.charAt(1) - '0' > 0;
-					userPic = supported.charAt(2) - '0' > 0;
-				}
+				// boolean finger = false; // 是否支持指纹下载.
+				// boolean face = false; // 是否支持脸部下载.
+				// boolean userPic = false; // 是否支持用户照片下载.
+				// if (null != supported && 2 < supported.length()) {
+				// finger = supported.charAt(0) - '0' > 0;
+				// face = supported.charAt(1) - '0' > 0;
+				// userPic = supported.charAt(2) - '0' > 0;
+				// }
 				return true;
-			} else {
-				/** TODO 修改设备表的状态,链接时间 */
-				if (null != device ) {
-					/**
-					 * 检查当前设备是否已使用 (signPointId 不等于null) 
-					 * #已注释 修改状态放在HR那边
-					 */
-					Device signPointNotNullDevice = deviceService.selectSignPointNotNullByDeviceSn(sn);
-					if(null != signPointNotNullDevice){
-						device.setState(2);
-					}
-					device.setLastConnectionTime(date);
-					device.setLastModifiedDate(date);
-
-					deviceService.updateByPrimaryKeySelective(device);
-				}
+			} else {// 不是新设备
+				syncDeviceInfo(sn, now, null, null);// 同步设备信息
 				return false;
 			}
 		} catch (Exception e) {
@@ -1609,6 +1495,82 @@ public class ClockServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	/**
+	 * 同步设备信息.
+	 *
+	 * @param sn
+	 * @param now
+	 * @param userCount
+	 * @param ip
+	 * @author FUQIHAO
+	 * @dateTime 2017年8月7日 上午11:51:52
+	 */
+	private void syncDeviceInfo(final String sn, final Date now, final String userCount, final String ip) {
+		Device dev = deviceService.selectByDeviceSn(sn);
+		if (null != dev) {
+			Device device = deviceService.selectSignPointNotNullByDeviceSn(sn);// 设备考勤点不为空(在使用状态)
+			if (null == device) {// 说明设备未使用或者为异常重新连接
+				dev.setIp(ip);
+				dev.setLastConnectionTime(now);
+				dev.setLastModifiedDate(now);
+				deviceService.updateByPrimaryKeySelective(dev);
+			} else {
+				// 应该同步的人数
+				int totalPeople = deviceService.countEmployeeBySn(sn);
+				device.setTotalPeople(totalPeople > 0 ? totalPeople : 0L);
+	
+				// 设备已同步人数(这里获取的是设备上的人员数据,不能排查出脏数据,所有需要改动成手动获取的情况)
+				// 修改于2017/06/05 pm 14:00
+				Long syncPeopleCount = null != userCount ? Long.parseLong(userCount) : 0L;
+				// 现阶段考勤机中如果存在脏数据不能够清除,所以为了让数据显示正确,需要手动查询一次系统中已经存在的指纹或者脸纹
+				Long syncPeople = deviceService.syncPeopleCountEmployeeBySn(sn);
+				LOGGER.info("考勤机已同步的人数是: {}", syncPeople);
+	
+				// 系统中未同步人数(系统中已经存在指纹或者脸纹的人员)
+				long unsyncPeople = totalPeople - syncPeople;
+				// 设备上未同步的人数(考勤机上存在的人员)
+				long unsyncPeopleCount = totalPeople - syncPeopleCount;
+	
+				if (null == userCount) {// 旧设备
+					if (unsyncPeople == 0) {
+						// 如果同步人数大于0,同步状态为 已同步
+						device.setSyncState(3);
+					} else {
+						// 根据设备序列号查询该设备的更新命令是否已经执行完成
+						List<Task> list = taskService.findTaskByDeviceSn(sn);
+						if (null == list || list.size() < 1) {
+							// 命令执行完毕了但是还是不相等,说明有未同步的人
+							device.setSyncState(1);
+						}
+					}
+				} else {// 新设备(或者第一次连接)
+					// 修改于20170526 13:51
+					// 原来是等于,现发现考勤机上存在脏数据后,导致未同步人数为负数,所以修改为小于等于
+					if (unsyncPeopleCount <= 0 && unsyncPeople == 0) {
+						// 如果同步人数大于0,同步状态为 已同步
+						device.setSyncState(3);
+					} else {
+						// 根据设备序列号查询该设备的更新命令是否已经执行完成
+						List<Task> list = taskService.findTaskByDeviceSn(sn);
+						if (null == list || list.size() < 1) {
+							// 命令执行完毕了但是还是不相等,说明有未同步的人
+							device.setSyncState(1);
+						}
+					}
+				}
+				
+				LOGGER.info("未同步的人数是: {}", unsyncPeople);
+				device.setUnsyncPeople(unsyncPeople > 0 ? unsyncPeople : 0l);
+				// 考勤点不为空,状态为使用
+				device.setState(2);// 将异常重新连接的设备恢复
+				device.setIp(ip);
+				device.setLastConnectionTime(now);
+				device.setLastModifiedDate(now);
+				deviceService.updateByPrimaryKeySelective(device);
+			}
+		}
 	}
 
 	/*

@@ -26,32 +26,7 @@
 	 </sql>
 	 
 	 <sql id="baseFilter">
-	 	<if test="sn != null">
-	 		AND SN = #{sn}
-	 	</if>
-	 	<if test="state != null">
-	 		AND STATE = #{state}
-	 	</if>
-	 	<if test="command != null">
-	 		AND COMMAND = #{command}
-	 	</if>
-	 	<if test="args != null">
-	 		AND ARGS = #{args}
-	 	</if>
-	 	<if test="startHandleTime != null">
-	 		AND START_HANDLE_TIME = #{startGandleTime}
-	 	</if>
-	 	<if test="completeTime != null">
-	 		AND COMPLETE_TIME = #{completeTime}
-	 	</if>
-	 	<if test="batchDate != null">
-	 		AND BATCH_DATE = #{batchDate}
-	 	</if>
-	 	AND DELETED = '0'
-	 </sql>
-	 
-	 <sql id="baseFilter1">
-	 		1=1
+	 	T.DELETED = 0
 	 	<if test="sn != null">
 	 		AND T.SN = #{sn}
 	 	</if>
@@ -73,49 +48,37 @@
 	 	<if test="batchDate != null">
 	 		AND T.BATCH_DATE = #{batchDate}
 	 	</if>
-	 	AND T.DELETED = '0'
 	 </sql>
 	 <select id="findMany" parameterType="map" resultMap="BaseTaskMap">
 	 	SELECT 
 	 		T.*
 	 		FROM T_TASK T
 	 		WHERE 
-	 		<include refid="baseFilter1"/>
+	 		<include refid="baseFilter"/>
 	 		ORDER BY T.CREATED_DATE ASC
 	 </select>
 	 
-	 <!-- 根据条件查询前20条数据 -->
-	 <select id="findManyBeforeSize" parameterType="map" resultMap="BaseTaskMap">
-	 		SELECT A.* FROM (	
-	 			SELECT T.* FROM T_TASK T 
-	 			WHERE 
-	 			<include refid="baseFilter1"/>
-	 			ORDER BY T.ID ASC
-	 		) A WHERE ROWNUM <![CDATA[<=]]> 1
+	 <!-- 根据条件查询第一条数据 -->
+	 <select id="findOneTask" parameterType="map" resultMap="BaseTaskMap">
+		SELECT  
+			T.ID,T.SN,T.STATE,T.COMMAND,T.ARGS,T.START_HANDLE_TIME,T.COMPLETE_TIME 
+		FROM T_TASK T 
+		WHERE 
+			<include refid="baseFilter"/>
+			AND ROWNUM = 1
+		ORDER BY T.ID ASC
 	 </select>
 	 
 	 <insert id="save" useGeneratedKeys="true" keyProperty="id">
-	 <selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
+		<selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
 			SELECT S_T_TASK.NEXTVAL FROM DUAL
 		</selectKey>
 	 	INSERT INTO　T_TASK(
 	 		<include refid="baseCols"/>
 	 	) VALUES(
-	 		#{id}
-		 	,#{sn}
-		 	,#{state}
-		 	,#{command}
-		 	,#{args}
-		 	,#{startHandleTime}
-		 	,#{completeTime}
-		 	,#{batchDate}
-		 	,#{deleted}
-		 	,#{creProId}
-		 	,#{createdBy}
-		 	,#{createdDate}
-		 	,#{modProId}
-		 	,#{lastModifiedBy}
-		 	,#{lastModifiedDate}
+	 		#{id},#{sn},#{state},#{command},#{args},#{startHandleTime},#{completeTime},
+	 		#{batchDate},#{deleted},#{creProId},#{createdBy},
+	 		#{createdDate},#{modProId},#{lastModifiedBy},#{lastModifiedDate}
 	 	)
 	 </insert>
 	 
@@ -187,14 +150,15 @@
 	 
 	 <!-- 根据任务ID,修改当前命令的状态 -->
 	 <update id="updateStateById" parameterType="map">
-	 	UPDATE T_TASK SET STATE = #{state}
+	 	UPDATE T_TASK 
+	 	SET STATE = #{state}
 	 	<if test="state == 3">
 	 	,COMPLETE_TIME = SYSDATE
 	 	</if> 
 	 	<if test="state == 2">
 	 	,START_HANDLE_TIME = SYSDATE
 	 	</if>
-	 	WHERE DELETED='0' AND ID = #{id}
+	 	WHERE DELETED = 0 AND ID = #{id}
 	 	<if test="oldState != null">
 	 		AND STATE = #{oldState}
 	 	</if>

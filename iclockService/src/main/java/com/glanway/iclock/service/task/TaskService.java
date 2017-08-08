@@ -23,45 +23,39 @@ public interface TaskService extends BaseService<Task> {
 	 * @author zhangshaung
 	 * @dateTime 2017年4月18日 下午4:37:29
 	 */
-	int chearCommandsBySn(String sn);
+	public int chearCommandsBySn(String sn);
 
 	/**
 	 * 说明 : 根据设备代码SN,修改当前命令的状态
 	 * 
-	 * @param sn
-	 *            设备代码sn
-	 * @param state
-	 *            将要修改的状态
-	 * @param oldSate
-	 *            指定某一状态
+	 * @param sn(设备代码sn)
+	 * @param state(将要修改的状态)
+	 * @param oldSate(指定某一状态)
 	 * @author zhangshaung
 	 * @dateTime 2017年4月18日 下午6:08:52
 	 */
-	void updateStateBySn(String sn, Integer state, Integer oldState);
+	public void updateStateBySn(String sn, Integer state, Integer oldState);
 
 	/**
 	 * 说明 : 根据任务ID,修改当前命令的状态
 	 * 
-	 * @param id
-	 *            任务(命令)Id
-	 * @param state
-	 *            将要修改的状态
-	 * @param oldSate
-	 *            指定某一状态
+	 * @param id(任务(命令)Id)
+	 * @param state(将要修改的状态)
+	 * @param oldSate(指定某一状态)
 	 * @author zhangshaung
 	 * @dateTime 2017年4月18日 下午6:08:52
 	 */
-	void updateStateById(Long id, Integer state, Integer oldState);
+	public void updateStateById(Long id, Integer state, Integer oldState);
 
 	/**
-	 * 说明 : 根据条件查询前20条数据
+	 * 说明 : 查询命令
 	 * 
 	 * @param params
 	 * @return
 	 * @author zhangshaung
 	 * @dateTime 2017年4月20日 下午7:59:00
 	 */
-	List<Task> findManyBeforeSize(Map<String, Object> params);
+	public Task findOneTask(Map<String, Object> params);
 
 	/**
 	 * 说明 : 根据设备序列号查询该设备是否还存在任务
@@ -71,7 +65,7 @@ public interface TaskService extends BaseService<Task> {
 	 * @author fuqihao
 	 * @dateTime 2017年6月7日 下午1:47:37
 	 */
-	List<Task> findTaskByDeviceSn(String sn);
+	public List<Task> findTaskByDeviceSn(String sn);
 
 	/**
 	 * 说明 : 删除三天前的命令
@@ -80,5 +74,5 @@ public interface TaskService extends BaseService<Task> {
 	 * @author fuqihao
 	 * @dateTime 2017年8月3日 下午3:16:15
 	 */
-	void updateDeletedByDate(String date);
+	public void updateDeletedByDate(String date);
 }

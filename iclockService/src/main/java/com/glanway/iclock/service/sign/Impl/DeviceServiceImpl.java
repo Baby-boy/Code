@@ -35,12 +35,8 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 	@Autowired
 	private FingerFaceTemplateDao faceTemplateDao;
 
-	/**
-	 * 新增考勤设备
-	 */
 	@Override
 	public void saveDevice(Device device) {
-
 		device.setId(null);
 		device.setBatchDate(new Date());
 		device.setCreatedBy(1l);

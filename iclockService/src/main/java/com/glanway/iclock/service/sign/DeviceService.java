@@ -11,8 +11,14 @@ public interface DeviceService extends BaseService<Device> {
 	public static final String HT = "\t"; // 设备中制表符
 	public static final String LF = "\n"; // 换行符
 
-	/** 新增考勤设备 */
-	void saveDevice(Device device);
+	/**
+	 * 新建设备.
+	 *
+	 * @param device
+	 * @author FUQIHAO
+	 * @dateTime 2017年8月7日 上午11:19:32
+	 */
+	public void saveDevice(Device device);
 
 	/***
 	 * 说明 : 修改
