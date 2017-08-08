@@ -142,7 +142,7 @@ public class ClockServlet extends HttpServlet {
 	/** iclock 配置. */
 	private Properties props;
 
-	private Map<String, Boolean> devices = new LinkedHashMap<>();
+	// private Map<String, Boolean> devices = new LinkedHashMap<>();
 
 	/**
 	 * 设备命令队列.
@@ -1035,17 +1035,20 @@ public class ClockServlet extends HttpServlet {
 			 */
 			if ("LOG".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_INIT_OVER_ID_PREFIX)) {
 				LOGGER.info("设备{} 从服务器初始化完成", sn);
-				devices.put(sn, Boolean.TRUE);
+				// devices.put(sn, Boolean.TRUE);
+				taskService.updateStateById(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)), 3, null);
 			} else if ("CHECK".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX)) {
 				final String dirtyCheckTimestamp = commandId
-						.substring(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX.length());
+						.substring(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX.length(), commandId.lastIndexOf("_"));
 				doDirtyCheck(sn, dirtyCheckTimestamp);
+				taskService.updateStateById(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)), 3, null);
 			} else if ("DATA".equals(commandType)
 					&& commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX)) {
 				// face 是最后执行的一个命令, 因此这个命令的执行结束后执行脏检查.
 				final String dirtyCheckTimestamp = commandId
-						.substring(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX.length());
+						.substring(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX.length(), commandId.lastIndexOf("_"));
 				doDirtyCheck(sn, dirtyCheckTimestamp);
+				taskService.updateStateById(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)), 3, null);
 			}
 		}
 		LOGGER.debug("设备{}执行指令{}[{}], 结果:{}", sn, commandType, commandId, returnCode);
@@ -1235,7 +1238,11 @@ public class ClockServlet extends HttpServlet {
 						if (StringUtil.hasChinese(args)) {
 							// args = new String(args.getBytes(), CommandWrapper.GB2312.name());
 						}
-						command = String.format(task.getCommand(), task.getId().toString(), args);
+						if (args.contains("-")) {
+							command = String.format(task.getCommand(), args + "_" + task.getId().toString(), args);
+						} else {
+							command = String.format(task.getCommand(), task.getId().toString(), args);
+						}
 					}
 				}
 				// 根据任务ID,修改设备SN未执行(state=1)的命令的状态为处理中(state=2)
@@ -1350,13 +1357,15 @@ public class ClockServlet extends HttpServlet {
 			// 先从数据库中查询应该在设备sn上签到的员工信息,如果没有查到,就给设备下达删除命令
 			List<EmployeeDeviceInfoVO> list = deviceService.findEmployeeBySn(sn);
 			boolean flag = true;
-			if (list.size() > 0) {
+			if (null != list && list.size() > 0) {
 				for (EmployeeDeviceInfoVO eInfoVO : list) {
-					if (eInfoVO.getCode() == pin) {
-						flag = false;
-					}
-					if (!flag) {
-						break;
+					if (null != eInfoVO.getCode()) {
+						if (eInfoVO.getCode().equals(pin)) {
+							flag = false;
+						}
+						if (!flag) {
+							break;
+						}
 					}
 				}
 
@@ -1376,14 +1385,16 @@ public class ClockServlet extends HttpServlet {
 			// 先从数据库中查询应该在设备sn上签到的员工头像信息,如果没有查到,就给设备下达删除命令
 			List<EmployeeDeviceInfoVO> list = deviceService.findEmployeeBySn(sn);
 			boolean flag = true;
-			if (list.size() > 0) {
+			if (null != list && list.size() > 0) {
 				for (EmployeeDeviceInfoVO eInfoVO : list) {
-					if (eInfoVO.getCode() == pin && null != eInfoVO.getPic()) {
-						flag = false;
-					}
-
-					if (!flag) {
-						break;
+					if (null != eInfoVO.getCode()) {
+						if (eInfoVO.getCode().equals(pin) && null != eInfoVO.getPic()) {
+							flag = false;
+						}
+						
+						if (!flag) {
+							break;
+						}
 					}
 				}
 			}
@@ -1403,13 +1414,15 @@ public class ClockServlet extends HttpServlet {
 			// 先从数据库中查询应该在设备sn上签到的员工指纹模板信息,如果没有查到,就给设备下达删除命令
 			List<EmployeeDeviceFingerFaceVo> list = deviceService.findEmployeeFingerFaceBySn(sn, 1);
 			boolean flag = true;
-			if (list.size() > 0) {
+			if (null != list && list.size() > 0) {
 				for (EmployeeDeviceFingerFaceVo eInfoVO : list) {
-					if (eInfoVO.getCode() == pin && eInfoVO.getFid() == fid) {
-						flag = false;
-					}
-					if (!flag) {
-						break;
+					if (null != eInfoVO.getCode() && null != eInfoVO.getFid()) {
+						if (eInfoVO.getCode().equals(pin) && eInfoVO.getFid().equals(fid)) {
+							flag = false;
+						}
+						if (!flag) {
+							break;
+						}
 					}
 				}
 			}
@@ -1428,13 +1441,15 @@ public class ClockServlet extends HttpServlet {
 			// 先从数据库中查询应该在设备sn上签到的员工面部模板信息,如果没有查到,就给设备下达删除命令
 			List<EmployeeDeviceFingerFaceVo> list = deviceService.findEmployeeFingerFaceBySn(sn, 2);
 			boolean flag = true;
-			if (list.size() > 0) {
+			if (null != list && list.size() > 0) {
 				for (EmployeeDeviceFingerFaceVo eInfoVO : list) {
-					if (eInfoVO.getCode() == pin && eInfoVO.getFid() == fid) {
-						flag = false;
-					}
-					if (!flag) {
-						break;
+					if (null != eInfoVO.getCode() && null != eInfoVO.getFid()) {
+						if (eInfoVO.getCode().equals(pin) && eInfoVO.getFid().equals(fid)) {
+							flag = false;
+						}
+						if (!flag) {
+							break;
+						}
 					}
 				}
 			}
