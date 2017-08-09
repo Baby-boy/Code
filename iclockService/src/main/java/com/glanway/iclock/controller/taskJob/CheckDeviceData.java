@@ -47,7 +47,7 @@ public class CheckDeviceData {
 	 * @author fuqihao
 	 * @dateTime 2017年7月9日 下午1:36:14
 	 */
-	@Scheduled(cron = "0 0 0  * * ? ")
+	@Scheduled(cron = "0 0 3 * * ? ")
 	public void checkDeviceData() {
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("state", 2);

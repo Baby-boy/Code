@@ -62,7 +62,7 @@ public class TaskContorller {
 
 		String[] snArray = org.apache.commons.lang3.StringUtils.split(sns, ",");
 		for (String sn : snArray) {
-			/****** 清除所有员工信息 *****/
+			/** 清除考勤机上的考勤记录 */
 			clearLog(sn);
 		}
 
@@ -196,7 +196,7 @@ public class TaskContorller {
 		for (Device device : list) {
 			device.setSyncState(2);// 同步中
 			deviceService.updateByPrimaryKeySelective(device);
-			
+
 			/****** 清除所有员工信息 *****/
 			clearUserInfo(device.getSn());
 			/***** 同步员工基本信息 ******/
@@ -210,7 +210,7 @@ public class TaskContorller {
 			/***** 同步员工面部模板信息 ******/
 			syncUserFace(device.getSn());
 		}
-		
+
 		jsonResult.setLoginState(3);
 		return jsonResult;
 	}
@@ -252,7 +252,7 @@ public class TaskContorller {
 			/***** 同步员工面部模板信息 ******/
 			syncUserFace(sn);
 		}
-		
+
 		jsonResult.setLoginState(3);
 		return jsonResult;
 	}

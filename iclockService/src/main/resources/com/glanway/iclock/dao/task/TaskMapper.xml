@@ -152,10 +152,10 @@
 	 <update id="updateStateById" parameterType="map">
 	 	UPDATE T_TASK 
 	 	SET STATE = #{state}
-	 	<if test="state == 3">
+	 	<if test="state == '3'.toString()">
 	 	,COMPLETE_TIME = SYSDATE
 	 	</if> 
-	 	<if test="state == 2">
+	 	<if test="state == '2'.toString()">
 	 	,START_HANDLE_TIME = SYSDATE
 	 	</if>
 	 	WHERE DELETED = 0 AND ID = #{id}

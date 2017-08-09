@@ -33,12 +33,12 @@ public class CheckDeviceConnection {
 	private DeviceService deviceService;
 
 	/**
-	 * 说明 : 定时任务,每一分钟执行一次,将超过5分钟没有连接的设备状态修改成异常
+	 * 说明 : 定时任务,每五分钟执行一次,将超过五分钟没有连接的设备状态修改成异常
 	 * 
 	 * @author zhangshaung
 	 * @dateTime 2017年4月20日 下午6:07:40
 	 */
-	@Scheduled(cron = "0 0/1 *  * * ? ")
+	@Scheduled(cron = "0 0/5 * * * ?")
 	public void checkDeviceConnctionState() {
 		List<Device> devices = deviceService.findLastConnectionTimeExcendFiveMinute();
 

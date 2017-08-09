@@ -442,52 +442,52 @@
 		LEFT JOIN
 		T_JOB JOB ON JOB.ID = EMP.JOB_ID AND JOB.STATE = 1
 		<include refid="where_findList" />
-		<if test="para.orderBy == 'employeeNameDesc'">
+		<if test="para.orderBy == 'employeeNameDesc'.toString()">
 			ORDER BY EMP."NAME" DESC
 		</if>
-		<if test="para.orderBy == 'employeeNameAsc'">
+		<if test="para.orderBy == 'employeeNameAsc'.toString()">
 			ORDER BY EMP."NAME" ASC
 		</if>
-		<if test="para.orderBy == 'employeeCodeDesc'">
+		<if test="para.orderBy == 'employeeCodeDesc'.toString()">
 			ORDER BY EMP.CODE DESC
 		</if>
-		<if test="para.orderBy == 'employeeCodeAsc'">
+		<if test="para.orderBy == 'employeeCodeAsc'.toString()">
 			ORDER BY EMP.CODE ASC
 		</if>
-		<if test="para.orderBy == 'deptNameDesc'">
+		<if test="para.orderBy == 'deptNameDesc'.toString()">
 			ORDER BY DEPT."NAME" DESC
 		</if>
-		<if test="para.orderBy == 'deptNameAsc'">
+		<if test="para.orderBy == 'deptNameAsc'.toString()">
 			ORDER BY DEPT."NAME" ASC
 		</if>
-		<if test="para.orderBy == 'jobNameDesc'">
+		<if test="para.orderBy == 'jobNameDesc'.toString()">
 			ORDER BY JOB."NAME" DESC
 		</if>
-		<if test="para.orderBy == 'jobNameAsc'">
+		<if test="para.orderBy == 'jobNameAsc'.toString()">
 			ORDER BY JOB."NAME" ASC
 		</if>
-		<if test="para.orderBy == 'jobStateDesc'">
+		<if test="para.orderBy == 'jobStateDesc'.toString()">
 			ORDER BY EMP.JOB_STATE DESC
 		</if>
-		<if test="para.orderBy == 'jobStateAsc'">
+		<if test="para.orderBy == 'jobStateAsc'.toString()">
 			ORDER BY EMP.JOB_STATE ASC
 		</if>
-		<if test="para.orderBy == 'entryDateDesc'">
+		<if test="para.orderBy == 'entryDateDesc'.toString()">
 			ORDER BY EMP.ENTRY_DATE DESC
 		</if>
-		<if test="para.orderBy == 'entryDateAsc'">
+		<if test="para.orderBy == 'entryDateAsc'.toString()">
 			ORDER BY EMP.ENTRY_DATE ASC
 		</if>
-		<if test="para.orderBy == 'formalDateDesc'">
+		<if test="para.orderBy == 'formalDateDesc'.toString()">
 			ORDER BY EMP.FORMAL_DATE DESC
 		</if>
-		<if test="para.orderBy == 'formalDateAsc'">
+		<if test="para.orderBy == 'formalDateAsc'.toString()">
 			ORDER BY EMP.FORMAL_DATE ASC
 		</if>
-		<if test="para.orderBy == 'quitDateDesc'">
+		<if test="para.orderBy == 'quitDateDesc'.toString()">
 			ORDER BY EMP.QUIT_DATE DESC
 		</if>
-		<if test="para.orderBy == 'quitDateAsc'">
+		<if test="para.orderBy == 'quitDateAsc'.toString()">
 			ORDER BY EMP.QUIT_DATE ASC
 		</if>
 		<if test="para.orderBy == null or para.orderBy == ''">
