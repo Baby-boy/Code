@@ -79,12 +79,24 @@ public interface TaskService extends BaseService<Task> {
 	/**
 	 * 说明: 根据命令查询命令任务
 	 *
+	 * @param sn
 	 * @param state
-	 * @param string
+	 * @param command
 	 * @return
 	 * @author FUQIHAO
 	 * @dateTime 2017年8月8日 下午5:45:53
 	 */
-	public List<Task> findTaskByCommand(Integer state, String command);
+	public List<Task> findTaskByCommand(String sn, Long id, String command);
+
+	/**
+	 * 说明: 校验命令执行情况
+	 *
+	 * @param sn
+	 * @param id
+	 * @return
+	 * @author FUQIHAO
+	 * @dateTime 2017年8月10日 上午11:23:14
+	 */
+	public Task checkCommandHandle(String sn, Long id);
 
 }

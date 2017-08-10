@@ -86,7 +86,12 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	}
 
 	@Override
-	public List<Task> findTaskByCommand(Integer state, String command) {
-		return taskDao.findTaskByCommand(state, command);
+	public List<Task> findTaskByCommand(String sn, Long id, String command) {
+		return taskDao.findTaskByCommand(sn, id, command);
+	}
+
+	@Override
+	public Task checkCommandHandle(String sn, Long id) {
+		return taskDao.checkCommandHandle(sn, id);
 	}
 }

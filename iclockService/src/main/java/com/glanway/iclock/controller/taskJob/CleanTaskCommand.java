@@ -27,15 +27,15 @@ public class CleanTaskCommand {
 	private TaskService taskService;
 
 	/**
-	 * 说明 : 每天凌晨三点清除命令表
+	 * 说明 : 每天凌晨三点清除重启命令表
 	 * 
 	 * @author fuqihao
 	 * @dateTime 2017年8月3日 下午3:00:05
 	 */
-	@Scheduled(cron = "0 0 3 * * ?")
+	@Scheduled(cron = "0 0 4 * * ?")
 	public void cleanTaskCommand() {
 		// 将状态为2的重启命令移至日志表中
-		List<Task> tasks = taskService.findTaskByCommand(2, "C:R-001:REBOOT");
+		List<Task> tasks = taskService.findTaskByCommand(null, null, "C:R-001:REBOOT");
 		for (Task task : tasks) {
 			taskService.recordTaskLog(task.getId());
 		}

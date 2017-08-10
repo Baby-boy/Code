@@ -69,6 +69,18 @@
 		ORDER BY T.ID ASC
 	 </select>
 	 
+	 <!-- 校验上条命令执行情况 -->
+	 <select id="checkCommandHandle" resultType="Task">
+	 	SELECT
+			ID,SN,STATE,COMMAND,ARGS,START_HANDLE_TIME,COMPLETE_TIME
+		FROM
+			T_TASK
+		WHERE DELETED = 0
+		AND STATE = 2 
+		AND SN = #{sn}
+		AND ID <![CDATA[<]]> #{id}
+	 </select>
+	 
 	 <insert id="save" useGeneratedKeys="true" keyProperty="id">
 		<selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
 			SELECT S_T_TASK.NEXTVAL FROM DUAL
@@ -131,18 +143,18 @@
 	 </update>
 	 
 	 <update id="delete" parameterType="Task">
-	 	UPDATE T_TASK SET DELETED = '1' WHERE ID = #{id}
+	 	UPDATE T_TASK SET DELETED = 1 WHERE ID = #{id}
 	 </update>
 	
 	 <!-- 根据设备代码SN,删除(逻辑删除)所有关于当前设备的记录 -->
 	 <update id="chearCommandsBySn" parameterType="java.lang.String">
-	 	UPDATE T_TASK SET DELETED = '1' WHERE SN = #{sn}
+	 	UPDATE T_TASK SET DELETED = 1 WHERE SN = #{sn}
 	 </update>
 	 
 	 <!-- 根据设备代码SN,修改当前命令的状态 -->
 	 <update id="updateStateBySn" parameterType="map">
 	 	UPDATE T_TASK SET STATE = #{state} 
-	 	WHERE DELETED='0' AND SN = #{sn}
+	 	WHERE DELETED = 0 AND SN = #{sn}
 	 	<if test="oldState != null">
 	 		AND STATE = #{oldState}
 	 	</if>
@@ -170,7 +182,6 @@
 			ID, SN, STATE, COMMAND, ARGS
 		FROM T_TASK
 		WHERE SN = #{sn} 
-		AND STATE != 3 
 		AND DELETED = 0
 		AND COMMAND LIKE '%DATA UPDATE%'
 	 </select>
@@ -185,7 +196,17 @@
 	 
 	 <select id="findTaskByCommand" resultType="Task">
 	 	SELECT ID 
-	 	FROM T_TASK 
-	 	WHERE COMMAND LIKE 'C:R-001:REBOOT' AND STATE = 2
+		FROM T_TASK 
+		WHERE DELETED = 0 
+		AND STATE = 2 
+		<if test="command != null and command != ''">
+			AND COMMAND LIKE #{command} 
+		</if>
+		<if test="sn != null and sn != ''">
+			AND SN = #{sn} 
+		</if>
+		<if test="id != null and id != ''">
+			AND ID <![CDATA[<]]> #{id}
+		</if>
 	 </select>
 </mapper>

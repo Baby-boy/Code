@@ -14,8 +14,8 @@ import com.glanway.iclock.service.BaseServiceImpl;
 import com.glanway.iclock.service.employee.EmployeeDeviceInfoService;
 
 /**
- * 说明 : 
- * 员工的考勤机信息(密码,指纹模板,人脸模板等),service的实现类
+ * 说明 : 员工的考勤机信息(密码,指纹模板,人脸模板等),service的实现类
+ * 
  * @author zhangshaung
  * @version 1.0.0
  * @dateTime 2017年4月19日 上午11:04:21
@@ -29,9 +29,8 @@ public class EmployeeDeviceInfoServiceImpl extends BaseServiceImpl<EmployeeDevic
 	private EmployeeDeviceInfoDao employeeDeviceInfoDao;
 
 	/**
+	 * 说明 : 根据Id查询员工的考勤机信息
 	 * 
-	 * 说明 : 
-	 * 根据Id查询员工的考勤机信息
 	 * @param id
 	 * @return
 	 * @author zhangshaung
@@ -39,14 +38,12 @@ public class EmployeeDeviceInfoServiceImpl extends BaseServiceImpl<EmployeeDevic
 	 */
 	@Override
 	public EmployeeDeviceInfo getInfoById(Long id) {
-		// TODO Auto-generated method stub
 		return employeeDeviceInfoDao.selectByPrimaryKey(id);
 	}
 
 	/**
+	 * 说明 : 根据员工代码employeeCode查询员工的考勤机信息
 	 * 
-	 * 说明 : 
-	 * 根据员工代码employeeCode查询员工的考勤机信息
 	 * @param employeeCode
 	 * @return
 	 * @author zhangshaung
@@ -54,7 +51,11 @@ public class EmployeeDeviceInfoServiceImpl extends BaseServiceImpl<EmployeeDevic
 	 */
 	@Override
 	public EmployeeDeviceInfo getInfoByEmployeeCode(String employeeCode) {
-		// TODO Auto-generated method stub
 		return employeeDeviceInfoDao.selectByEmployeeCode(employeeCode);
+	}
+
+	@Override
+	public void updateById(EmployeeDeviceInfo employeeInfo) {
+		employeeDeviceInfoDao.updateByPrimaryKeySelective(employeeInfo);
 	}
 }

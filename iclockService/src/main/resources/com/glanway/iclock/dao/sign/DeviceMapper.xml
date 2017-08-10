@@ -324,7 +324,7 @@
 	</update>
 	
 	<sql id="baseFilter">
-			1 = 1
+			DELETED = 0
 			<if test="signPointId != null">
 				AND SIGN_POINT_ID = #{signPointId}
 			</if>
@@ -376,7 +376,6 @@
 			<if test="lastModifiedDate != null">
 				AND LAST_MODIFIED_DATE = #{lastModifiedDate}
 			</if>
-			AND DELETED = 0
 	</sql>
 	<select id="findMany" parameterType="map" resultMap="BaseResultMap">
 		SELECT 

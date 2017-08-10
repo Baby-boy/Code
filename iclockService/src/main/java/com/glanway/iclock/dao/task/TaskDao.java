@@ -39,6 +39,9 @@ public interface TaskDao extends BaseDao<Task> {
 	public void deleteTaskById(@Param("id") Long id);
 
 	/** 根据指令查询指令任务 */
-	public List<Task> findTaskByCommand(@Param("state") Integer state, @Param("command") String command);
+	public List<Task> findTaskByCommand(@Param("sn") String sn, @Param("id") Long id, @Param("command") String command);
+
+	/** 校验命令执行情况 */
+	public Task checkCommandHandle(@Param("sn") String sn, @Param("id") Long id);
 
 }

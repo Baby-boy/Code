@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -142,6 +143,9 @@ public class ClockServlet extends HttpServlet {
 	/** iclock 配置. */
 	private Properties props;
 
+	/** 系统配置 */
+	private Properties config;
+
 	// private Map<String, Boolean> devices = new LinkedHashMap<>();
 
 	/**
@@ -190,6 +194,7 @@ public class ClockServlet extends HttpServlet {
 	public void init() throws ServletException {
 		final String location = getInitParameter(CommandWrapper.CFG_LOCATION_PARAM);
 		final Properties defaults = load(ClockServlet.class, CommandWrapper.DEFAULT_CFG_LOCATION, null);
+		final Properties config = load(ClockServlet.class, "classpath:config.properties", null);
 
 		if (null == defaults) {
 			LOGGER.error("default iclock config file '{}' can't load", CommandWrapper.DEFAULT_CFG_LOCATION);
@@ -205,6 +210,7 @@ public class ClockServlet extends HttpServlet {
 			props = new Properties(defaults);
 		}
 		this.props = props;
+		this.config = config;
 	}
 
 	@Override
@@ -286,7 +292,7 @@ public class ClockServlet extends HttpServlet {
 		if (PUSH_DATA_URI.equals(requestUri)) {
 			/** 3.2.3 设备数据上报. */
 			final String table = req.getParameter("table");
-			final String stamp = req.getParameter("Stamp"); // 本次数据的时间戳,用于初始化配置时tableStamp,已过时,始终是9999
+			// final String stamp = req.getParameter("Stamp"); // 本次数据的时间戳,用于初始化配置时tableStamp,已过时,始终是9999
 
 			String line;
 			InputStreamReader inputStreamReader = new InputStreamReader(req.getInputStream(), charset.name());
@@ -471,10 +477,7 @@ public class ClockServlet extends HttpServlet {
 				final Boolean deviceOffline = device.getState() == 1;// 当设备state=1时,说明设备未使用
 
 				if (deviceOffline || newDevice) {// 新设备接入,而且是未使用的设备
-//					pushCommand(sn, CommandWrapper.CMD_RELOAD_DATA,
-//							CommandWrapper.DEV_RELOAD_DATA_ID_PREFIX + timestamp);
-//					pushCommand(sn, CommandWrapper.CMD_RELOAD_OPTIONS,
-//							CommandWrapper.DEV_RELOAD_OPTIONS_ID_PREFIX + timestamp);
+					pushCommand(sn, CommandWrapper.CMD_RELOAD_OPTIONS, CommandWrapper.DEV_RELOAD_OPTIONS_ID_PREFIX + timestamp);
 				}
 
 				if (deviceOnline) {// 设备在使用,查询该设备存在的需要执行的命令
@@ -601,6 +604,19 @@ public class ClockServlet extends HttpServlet {
 		empl1.setPwd(password);
 		empl1.setCard(card);
 		int result = isChangedEmployeeInfo(1, empl1);
+		
+		// 在这里设置管理员的权限永远不会被覆盖
+		if (this.config.getProperty("deviceManager").contains(pin)) {
+			// 根据职员代码查询员工
+			EmployeeDeviceInfo employeeInfo = employeeDeviceInfoService.getInfoByEmployeeCode(pin);
+			if (null != employeeInfo) {
+				employeeInfo.setPri("14");
+				employeeInfo.setPwd(this.config.getProperty("deviceManagerPwd"));
+				employeeDeviceInfoService.updateById(employeeInfo);
+				result = 0;
+			}
+		}
+		
 		/**
 		 * result =
 		 * {0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:员工基本信息没有存储(
@@ -626,12 +642,6 @@ public class ClockServlet extends HttpServlet {
 			LOGGER.debug("设备{}上用户{}信息发生变动: 姓名: {}, 权限: {}, 密码: {}, 卡号: {}", sn, pin, name, pri, password, card, grp, tz,
 					verify);
 		}
-		/*
-		 * //如果发生变动,就要更新 if (isChangedItem(sn, TAB_USERINFO, pin, item)) {
-		 * 
-		 * LOGGER.debug("设备{}上用户{}信息发生变动: 姓名: {}, 权限: {}, 密码: {}, 卡号: {}", sn,
-		 * pin, name, pri, password, card, grp, tz, verify); }
-		 */
 
 		// 缓存设备信息, 用于删除脏检查.
 		cacheDeviceItem(sn, TAB_USERINFO, pin, timestamp + "|" + item);
@@ -690,12 +700,6 @@ public class ClockServlet extends HttpServlet {
 				LOGGER.debug("设备{}上用户{} 指纹 {} 发生变动, 有效性: {}, 指纹: {}", sn, pin, fid, valid, finger);
 			}
 
-			/*
-			 * if (isChangedItem(sn, TAB_FINGERTMP, key, item)) { LOGGER.debug(
-			 * "设备{}上用户{} 指纹 {} 发生变动, 有效性: {}, 指纹: {}", sn, pin, fid, valid,
-			 * finger); }
-			 */
-
 			// 缓存设备信息, 用于删除脏检查.
 			cacheDeviceItem(sn, TAB_FINGERTMP, key, timestamp + "|" + item);
 			cacheDeviceItem("*", TAB_FINGERTMP, key, item);
@@ -718,10 +722,6 @@ public class ClockServlet extends HttpServlet {
 			final String content = info.get("Content");
 			final String photo = 0 < size ? content.substring(0, size) : content;
 
-			/*
-			 * if (isChangedItem(sn, TAB_USERPIC, pin, item)) { LOGGER.info(
-			 * "设备{}上用户{} 头像 {} 发生变动, 内容: {}", sn, pin, filename, photo); }
-			 */
 			EmployeeDeviceInfo empl1 = new EmployeeDeviceInfo();
 			empl1.setEmployeeCode(pin);
 			empl1.setPic(photo);
@@ -780,9 +780,7 @@ public class ClockServlet extends HttpServlet {
 			fft.setType(2);
 			fft.setValid(valid);
 
-			/**
-			 * 将设备上传的数据和数据库里面做比较 如果没有变动,就不做处理 如果发生变化,就做修改 如果服务器中没有这个数据,就插入数据库
-			 */
+			/** 将设备上传的数据和数据库里面做比较 如果没有变动,就不做处理 如果发生变化,就做修改 如果服务器中没有这个数据,就插入数据库 */
 			/**
 			 * result =
 			 * {0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp),4:
@@ -807,12 +805,6 @@ public class ClockServlet extends HttpServlet {
 
 				LOGGER.info("设备{}上用户{} 脸纹 {} 发生变动, 有效性: {}, 脸纹: {}", sn, pin, fid, valid, face);
 			}
-
-			/*
-			 * if (isChangedItem(sn, TAB_FACE, key, item)) { LOGGER.info(
-			 * "设备{}上用户{} 脸纹 {} 发生变动, 有效性: {}, 脸纹: {}", sn, pin, fid, valid,
-			 * face); }
-			 */
 
 			cacheDeviceItem(sn, TAB_FACE, pin + "-" + fid, timestamp + "|" + item);
 			cacheDeviceItem("*", TAB_FACE, pin + "-" + fid, item);
@@ -1012,10 +1004,7 @@ public class ClockServlet extends HttpServlet {
 				return;
 			}
 
-			// 根据任务ID,修改设备SN未执行(state=1)的命令的状态为完成(state=3)
-			/**
-			 * 如果是业务命令, 则应该对应的业务命令状态. 如果是业务命令, 不会包含-
-			 */
+			/** 业务指令操作. 如果是业务命令, 不会包含- */
 			final int index = commandId.indexOf("-");
 			if (0 > index) {
 				if ("0".equals(returnCode)) {
@@ -1027,15 +1016,13 @@ public class ClockServlet extends HttpServlet {
 				return;
 			}
 
-			/**
-			 * 更新命令状态
-			 * 
-			 * //根据任务ID,修改设备SN未执行(state=1)的命令的状态为处理中(state=2)
-			 * taskService.updateStateById(task.getId(), 2, 1);
-			 */
+			/** 非业务型指令操作 */
 			if ("LOG".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_INIT_OVER_ID_PREFIX)) {
 				LOGGER.info("设备{} 从服务器初始化完成", sn);
 				// devices.put(sn, Boolean.TRUE);
+				taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
+			}else if ("RELOAD".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_RELOAD_OPTIONS_ID_PREFIX)) {
+				LOGGER.info("设备{} 从服务器初始化完成", sn);
 				taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
 			} else if ("CHECK".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX)) {
 				final String dirtyCheckTimestamp = commandId
@@ -1119,7 +1106,7 @@ public class ClockServlet extends HttpServlet {
 					/* 需要先清除数据清除 */
 					// clearUserInfoAll(device.getSn());
 					/**
-					 * TODO 需要在数据库中根据不同的命令,查询不同设备下的信息,拼接到命令上去
+					 * 需要在数据库中根据不同的命令,查询不同设备下的信息,拼接到命令上去
 					 */
 					/*
 					 * List<String> paramList = null; if
@@ -1226,6 +1213,27 @@ public class ClockServlet extends HttpServlet {
 			// 命令只能是一条一条执行(所有返回的数据只会是一条)
 			Task task = taskService.findOneTask(params);
 			if (task != null) {
+				List<Task> reBootTasks = taskService.findTaskByCommand(sn, task.getId(), "C:R-001:REBOOT");
+				if (null != reBootTasks && reBootTasks.size() > 0) {
+					for (Task reBootTask : reBootTasks) {
+						taskService.recordTaskLog(reBootTask.getId());
+					}
+				}
+				// 这里已经把重启的命令清除了
+				Task returnTask = taskService.checkCommandHandle(sn, task.getId());
+				if (null != returnTask) {
+					// 如果是当前时间三分钟以前的命令,则说明没有考勤机返回响应,响应重新执行该条命令
+					Calendar calendar = Calendar.getInstance();
+					calendar.setTime(returnTask.getStartHandleTime());
+					calendar.add(Calendar.MINUTE, 3);
+					Date afterDate = calendar.getTime();
+					if (afterDate.before(new Date())) {
+						task = returnTask;
+					} else {
+						// 否则的话,该台考勤机接下来三分钟内将不执行命令,等待上条命令响应
+						return null;
+					}
+				}
 				String command = task.getCommand();
 				if (null != command) {
 					/**
@@ -1352,7 +1360,6 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	protected void handleRemoveUserItem(final String sn, final String pin) {
-		LOGGER.info("设备{}删除用户{}", sn, pin);
 		try {
 			// 先从数据库中查询应该在设备sn上签到的员工信息,如果没有查到,就给设备下达删除命令
 			List<EmployeeDeviceInfoVO> list = deviceService.findEmployeeBySn(sn);
@@ -1372,6 +1379,7 @@ public class ClockServlet extends HttpServlet {
 			}
 			if (flag) {
 				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_USER, "PIN=" + pin);
+				LOGGER.info("设备{}删除用户{}", sn, pin);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1380,7 +1388,6 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	protected void handleRemovePhotoItem(final String sn, final String pin) {
-		LOGGER.info("设备{}删除头像{}", sn, pin);
 		try {
 			// 先从数据库中查询应该在设备sn上签到的员工头像信息,如果没有查到,就给设备下达删除命令
 			List<EmployeeDeviceInfoVO> list = deviceService.findEmployeeBySn(sn);
@@ -1400,6 +1407,7 @@ public class ClockServlet extends HttpServlet {
 			}
 			if (flag) {
 				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_PHOTO, "PIN=" + pin);
+				LOGGER.info("设备{}删除头像{}", sn, pin);
 			}
 
 		} catch (Exception e) {
@@ -1409,7 +1417,6 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	protected void handleRemoveFingerItem(final String sn, final String pin, final String fid) {
-		LOGGER.info("设备{}删除指纹{}", sn, pin + "-" + fid);
 		try {
 			// 先从数据库中查询应该在设备sn上签到的员工指纹模板信息,如果没有查到,就给设备下达删除命令
 			List<EmployeeDeviceFingerFaceVo> list = deviceService.findEmployeeFingerFaceBySn(sn, 1);
@@ -1428,6 +1435,7 @@ public class ClockServlet extends HttpServlet {
 			}
 			if (flag) {
 				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_FINGER, "PIN=" + pin + "\t" + "FID=" + fid);
+				LOGGER.info("设备{}删除指纹{}", sn, pin + "-" + fid);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1436,7 +1444,6 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	protected void handleRemoveFaceItem(final String sn, final String pin, final String fid) {
-		LOGGER.info("设备{}删除人脸{}", sn, pin + "-" + fid);
 		try {
 			// 先从数据库中查询应该在设备sn上签到的员工面部模板信息,如果没有查到,就给设备下达删除命令
 			List<EmployeeDeviceFingerFaceVo> list = deviceService.findEmployeeFingerFaceBySn(sn, 2);
@@ -1455,6 +1462,7 @@ public class ClockServlet extends HttpServlet {
 			}
 			if (flag) {
 				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_FACE, "PIN=" + pin + "\t" + "FID=" + fid);
+				LOGGER.info("设备{}删除人脸{}", sn, pin + "-" + fid);
 			}
 		} catch (Exception e) {
 			LOGGER.info("设备删除人脸失败!" + e.getMessage());
@@ -1491,15 +1499,6 @@ public class ClockServlet extends HttpServlet {
 				final String supported = 9 < infoArray.length ? infoArray[9] : null; // 支持功能标记.
 
 				syncDeviceInfo(sn, now, userCount, ip);// 同步设备信息
-
-				// boolean finger = false; // 是否支持指纹下载.
-				// boolean face = false; // 是否支持脸部下载.
-				// boolean userPic = false; // 是否支持用户照片下载.
-				// if (null != supported && 2 < supported.length()) {
-				// finger = supported.charAt(0) - '0' > 0;
-				// face = supported.charAt(1) - '0' > 0;
-				// userPic = supported.charAt(2) - '0' > 0;
-				// }
 				return true;
 			} else {// 不是新设备
 				syncDeviceInfo(sn, now, null, null);// 同步设备信息

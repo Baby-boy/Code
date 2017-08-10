@@ -38,13 +38,11 @@
 		from T_EMPLOYEE_DEVICE_INFO
 		where DELETED = '0' AND ID = #{id}
 	</select>
-	<select id="selectByEmployeeCode" resultMap="BaseResultMap"
-		parameterType="java.lang.String">
-		select
-		<include refid="Base_Column_List" />
-		from T_EMPLOYEE_DEVICE_INFO
-		where DELETED = '0' AND EMPLOYEE_CODE =
-		#{employeeCode}
+	<select id="selectByEmployeeCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT
+			<include refid="Base_Column_List" />
+		FROM T_EMPLOYEE_DEVICE_INFO
+		WHERE DELETED = 0 AND EMPLOYEE_CODE = #{employeeCode}
 	</select>
 	<delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
 		delete from

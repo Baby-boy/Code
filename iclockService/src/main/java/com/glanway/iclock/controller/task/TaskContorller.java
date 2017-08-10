@@ -1,7 +1,3 @@
-/**
- * @author zhangshuang
- * 2017年4月22日 下午2:32:30
- */
 package com.glanway.iclock.controller.task;
 
 import java.util.Date;
@@ -25,7 +21,7 @@ import com.glanway.iclock.service.sign.DeviceService;
 import com.glanway.iclock.service.task.TaskService;
 
 /**
- * 说明 :
+ * 说明 : HR调用接口
  * 
  * @author zhangshaung
  * @version 1.0.0
@@ -71,42 +67,11 @@ public class TaskContorller {
 	}
 
 	/**
-	 * 说明 : 清除指定设备上的员工信息
-	 * 
-	 * @param sns
-	 * @return
-	 * @author fuqihao
-	 * @dateTime 2017年6月7日 上午11:52:21
-	 */
-	@ResponseBody
-	@RequestMapping("clearUserInfo")
-	public JsonResult cleanUserInfo(String sns) {
-		JsonResult jsonResult = new JsonResult();
-
-		if (org.apache.commons.lang3.StringUtils.isEmpty(sns)) {
-			jsonResult.setCode(HttpCode.BAD_REQUEST);
-			jsonResult.setMsg("考勤机序列号(sn)不能为空!");
-			return jsonResult;
-		}
-
-		String[] snArray = org.apache.commons.lang3.StringUtils.split(sns, ",");
-		for (String sn : snArray) {
-			/****** 清除所有员工信息 *****/
-			clearUserInfo(sn);
-		}
-
-		jsonResult.setLoginState(3);
-		return jsonResult;
-	}
-
-	/**
 	 * 说明 : HR系统调用 给设备下达上传考勤记录的命令的接口
 	 * 
 	 * @param sn(设备代码)
-	 * @param startTime
-	 *            格式:yyyy-MM-dd HH:mm:ss
-	 * @param endTime
-	 *            格式:yyyy-MM-dd HH:mm:ss
+	 * @param startTime(格式:"yyyy-MM-dd HH:mm:ss")
+	 * @param endTime(格式:"yyyy-MM-dd HH:mm:ss")
 	 * 
 	 * @return
 	 * @author zhangshaung
@@ -123,7 +88,6 @@ public class TaskContorller {
 		}
 		String[] arraySn = sns.split(",");
 		for (String sn : arraySn) {
-
 			Task task = new Task();
 
 			task.setSn(sn);
@@ -169,10 +133,6 @@ public class TaskContorller {
 			clearAll(sn);
 		}
 
-		// Map<String, Object> params = new HashMap<String, Object>();
-		// params.put("state", 2);
-		// List<Device> list = deviceService.findMany(params);
-
 		jsonResult.setLoginState(3);
 		return jsonResult;
 	}
@@ -197,14 +157,10 @@ public class TaskContorller {
 			device.setSyncState(2);// 同步中
 			deviceService.updateByPrimaryKeySelective(device);
 
-			/****** 清除所有员工信息 *****/
-			clearUserInfo(device.getSn());
 			/***** 同步员工基本信息 ******/
 			syncUserInfo(device.getSn());
-
 			/***** 同步员工头像信息 ******/
 			syncUserPhoto(device.getSn());
-
 			/***** 同步员工指纹模板信息 ******/
 			syncUserFinger(device.getSn());
 			/***** 同步员工面部模板信息 ******/
@@ -227,26 +183,21 @@ public class TaskContorller {
 	@ResponseBody
 	public JsonResult updateUerInfo(@RequestParam(value = "sns") String sns) {
 		JsonResult jsonResult = new JsonResult();
-		if (null == sns || "".equals(sns)) {
+		if (org.apache.commons.lang3.StringUtils.isEmpty(sns)) {
 			jsonResult.setCode(HttpCode.BAD_REQUEST);
 			jsonResult.setMsg("考勤机代码(sn)不能为空!");
 			return jsonResult;
 		}
-		String[] snArray = sns.split(",");
 
-		for (String sn : snArray) {
+		for (String sn : sns.split(",")) {
 			Device device = deviceService.selectByDeviceSn(sn);
 			device.setSyncState(2);// 同步中
 			deviceService.updateByPrimaryKeySelective(device);
 
-			/****** 清除所有员工信息 *****/
-			clearUserInfo(sn);
 			/***** 同步员工基本信息 ******/
 			syncUserInfo(sn);
-
 			/***** 同步员工头像信息 ******/
 			syncUserPhoto(sn);
-
 			/***** 同步员工指纹模板信息 ******/
 			syncUserFinger(sn);
 			/***** 同步员工面部模板信息 ******/
@@ -265,14 +216,11 @@ public class TaskContorller {
 	 * @dateTime 2017年4月25日 下午5:54:26
 	 */
 	public void syncUserFace(String sn) {
-
 		Task task = new Task();
 		task.setId(null);
 		task.setSn(sn);
 		task.setState(1);
-		/**
-		 * 将args[] 转换成String类型,中间用""隔开
-		 */
+		// 创建命令执行参数
 		List<String> paramList = deviceService.updateUserFaceTmpDataBySn(sn);
 		int count = 0;
 		if (null != paramList) {
@@ -308,21 +256,18 @@ public class TaskContorller {
 	 * @dateTime 2017年4月25日 下午5:54:26
 	 */
 	public void syncUserFinger(String sn) {
-
 		Task task = new Task();
 		task.setId(null);
 		task.setSn(sn);
 		task.setState(1);
-		/**
-		 * 将args[] 转换成String类型,中间用""隔开
-		 */
+		task.setDeleted("0");
+		// 创建命令执行参数
 		List<String> paramList = deviceService.updateUserFingerTmpDataBySn(sn);
 		if (null != paramList) {
 			for (String param : paramList) {
 				task.setArgs(param);
 				task.setCommand(CommandWrapper.CMD_DATA_UPDATE_FINGER);
 				task.setCreatedDate(new Date());
-				task.setDeleted("0");
 
 				taskService.save(task);
 			}
@@ -343,16 +288,14 @@ public class TaskContorller {
 		task.setId(null);
 		task.setSn(sn);
 		task.setState(1);
-		/**
-		 * 将args[] 转换成String类型,中间用""隔开
-		 */
+		task.setDeleted("0");
+		// 创建命令执行参数
 		List<String> paramList = deviceService.updateUserPhoneDataBySn(sn);
 		if (null != paramList) {
 			for (String param : paramList) {
 				task.setArgs(param);
 				task.setCommand(CommandWrapper.CMD_DATA_UPDATE_PHOTO);
 				task.setCreatedDate(new Date());
-				task.setDeleted("0");
 
 				taskService.save(task);
 			}
@@ -371,21 +314,12 @@ public class TaskContorller {
 		clearTask.setId(null);
 		clearTask.setSn(sn);
 		clearTask.setState(1);
-		/**
-		 * 将args[] 转换成String类型,中间用""隔开
-		 */
-		List<String> clearParam = deviceService.updateUserPhoneDataBySn(sn);
-		if (null != clearParam) {
-			for (String param : clearParam) {
-				clearTask.setArgs(param);
-				clearTask.setCommand(CommandWrapper.CMD_CLEAR_PHOTO);
-				clearTask.setCreatedDate(new Date());
-				clearTask.setDeleted("0");
+		clearTask.setArgs(null);
+		clearTask.setCommand(CommandWrapper.CMD_CLEAR_PHOTO);
+		clearTask.setCreatedDate(new Date());
+		clearTask.setDeleted("0");
 
-				taskService.save(clearTask);
-			}
-
-		}
+		taskService.save(clearTask);
 	}
 
 	/**
@@ -396,53 +330,21 @@ public class TaskContorller {
 	 * @dateTime 2017年4月25日 下午5:54:26
 	 */
 	public void syncUserInfo(String sn) {
-
 		Task task = new Task();
 		task.setId(null);
 		task.setSn(sn);
 		task.setState(1);
-		/**
-		 * 将args[] 转换成String类型,中间用""隔开
-		 */
+		task.setDeleted("0");
+		// 创建命令执行参数
 		List<String> paramList = deviceService.updateUserInfoDataBySn(sn);
 		if (null != paramList) {
 			for (String param : paramList) {
 				task.setArgs(param);
 				task.setCommand(CommandWrapper.CMD_DATA_UPDATE_USER);
 				task.setCreatedDate(new Date());
-				task.setDeleted("0");
 
 				taskService.save(task);
 			}
-		}
-	}
-
-	/**
-	 * 说明 : 清除所有员工基本信息
-	 * 
-	 * @param sn
-	 * @author zhangshaung
-	 * @dateTime 2017年4月25日 下午5:54:06
-	 */
-	public void clearUserInfo(String sn) {
-		Task clearTask = new Task();
-		clearTask.setId(null);
-		clearTask.setSn(sn);
-		clearTask.setState(1);
-		/**
-		 * 将args[] 转换成String类型,中间用""隔开
-		 */
-		List<String> clearParam = deviceService.updateUserInfoDataBySn(sn);
-		if (null != clearParam) {
-			for (String param : clearParam) {
-				clearTask.setArgs(param);
-				clearTask.setCommand(CommandWrapper.CMD_CLEAR_ALL_USERINFO);
-				clearTask.setCreatedDate(new Date());
-				clearTask.setDeleted("0");
-
-				taskService.save(clearTask);
-			}
-
 		}
 	}
 
@@ -458,21 +360,12 @@ public class TaskContorller {
 		clearTask.setId(null);
 		clearTask.setSn(sn);
 		clearTask.setState(1);
-		/**
-		 * 将args[] 转换成String类型,中间用""隔开
-		 */
-		List<String> clearParam = deviceService.updateUserInfoDataBySn(sn);
-		if (null != clearParam) {
-			for (String param : clearParam) {
-				clearTask.setArgs(param);
-				clearTask.setCommand(CommandWrapper.CMD_CLEAR_DATA);
-				clearTask.setCreatedDate(new Date());
-				clearTask.setDeleted("0");
+		clearTask.setArgs(null);
+		clearTask.setCommand(CommandWrapper.CMD_CLEAR_DATA);
+		clearTask.setCreatedDate(new Date());
+		clearTask.setDeleted("0");
 
-				taskService.save(clearTask);
-			}
-
-		}
+		taskService.save(clearTask);
 	}
 
 	/**
@@ -487,19 +380,12 @@ public class TaskContorller {
 		clearTask.setId(null);
 		clearTask.setSn(sn);
 		clearTask.setState(1);
+		clearTask.setDeleted("0");
+		clearTask.setArgs(null);
+		clearTask.setCommand(CommandWrapper.CMD_CLEAR_LOG);
+		clearTask.setCreatedDate(new Date());
 
-		List<String> clearParam = deviceService.updateUserInfoDataBySn(sn);
-		if (null != clearParam) {
-			for (String param : clearParam) {
-				clearTask.setArgs(param);
-				clearTask.setCommand(CommandWrapper.CMD_CLEAR_LOG);
-				clearTask.setCreatedDate(new Date());
-				clearTask.setDeleted("0");
-
-				taskService.save(clearTask);
-			}
-
-		}
+		taskService.save(clearTask);
 	}
 
 }

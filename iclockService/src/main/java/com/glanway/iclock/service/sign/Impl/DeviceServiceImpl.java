@@ -128,10 +128,8 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 	public List<String> updateUserInfoDataBySn(String sn) {
 		// 先根据设备sn 查询 需要到当前设备上打卡的所有员工信息
 		List<EmployeeDeviceInfoVO> employeeVos = this.findEmployeeBySn(sn);
-		// 开始拼接命令
-		// 参数集
-
 		List<String> list = new ArrayList<String>();
+		// 开始拼接命令参数集
 		for (EmployeeDeviceInfoVO eInfoVO : employeeVos) {
 			final StringBuilder param = new StringBuilder();
 			final String code = eInfoVO.getCode();
@@ -143,9 +141,7 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 			param.append("PIN=").append(code);
 
 			if (StringUtils.hasText(name)) {
-				param.append(HT).append("Name=");
-
-				param.append(name);
+				param.append(HT).append("Name=").append(name);
 			}
 
 			if (StringUtils.hasText(pwd)) {
@@ -162,28 +158,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 				param.append(HT);
 			}
 
-			/*
-			 * //单个参数 param.append("PIN="+eInfoVO.getCode()+HT);
-			 * //先判断Name是否为中文,如果为中文,编码为:GB2312;如果为其他,编码为UTF-8 String name =
-			 * eInfoVO.getName(); if(null != name){ try {
-			 * if(StringUtil.hasChinese(name)){ name=new
-			 * String(name.getBytes(),"GB2312"); }else{ name=new
-			 * String(name.getBytes(),"UTF-8"); } } catch
-			 * (UnsupportedEncodingException e) { // TODO Auto-generated catch
-			 * block //e.printStackTrace(); name=eInfoVO.getName(); } }
-			 * param.append("Name="+eInfoVO.getName()+HT); if(null !=
-			 * eInfoVO.getPwd()){ param.append("Passwd="+ eInfoVO.getPwd()+HT);
-			 * } if(null != eInfoVO.getCard()){
-			 * param.append("Card="+eInfoVO.getCard()+HT); }
-			 * //param.append("Grp="+null+"\t");
-			 * //param.append("TZ="+null+"\t"); param.append("Pri="+(null ==
-			 * eInfoVO.getPri()? "0" : eInfoVO.getPri())+HT); //
-			 * param.append(LF);
-			 */
-
-			/*
-			 * 新需求 2017-04-27 如果员工没有指纹信息或脸部信息,就不需要同步到设备上
-			 */
 			// 先根据员工编号查询是否有指纹和脸纹 , 如果没有指纹或面部数据,就不同步当前员工
 			final int count = this.countFingerAndFaceByEmployeeCode(code);
 			if (count > 0) {
@@ -227,10 +201,8 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 	public List<String> updateUserPhoneDataBySn(String sn) {
 		// 先根据设备sn 查询 需要到当前设备上打卡的所有员工信息
 		List<EmployeeDeviceInfoVO> employeeVos = this.findEmployeeBySn(sn);
-		// 开始拼接命令
-		// 参数集
 		List<String> list = new ArrayList<String>();
-
+		// 开始拼接命令参数集
 		for (EmployeeDeviceInfoVO eInfoVO : employeeVos) {
 			final StringBuilder param = new StringBuilder();
 			final String code = eInfoVO.getCode();
@@ -241,29 +213,12 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 				pic = employeeDeviceInfo.getPic();
 				param.append(HT).append("Size=").append(pic.length());
 				param.append(HT).append("Content=").append(pic);
-				/*
-				 * 新需求 2017-04-27 如果员工没有指纹信息或脸部信息,就不需要同步到设备上
-				 */
 				// 先根据员工编号查询是否有指纹和脸纹 , 如果没有指纹或面部数据,就不同步当前员工
 				final int count = this.countFingerAndFaceByEmployeeCode(code);
 				if (count > 0) {
 					list.add(param.toString());
 				}
 			}
-
-			// 单个参数
-			// 根据code查询pic
-			/*
-			 * StringBuffer param = new StringBuffer(); EmployeeDeviceInfo
-			 * employeeDeviceInfo=employeeDeviceInfoDao.selectByEmployeeCode(
-			 * eInfoVO.getCode()); param.append("PIN="+eInfoVO.getCode()+HT);
-			 * String pic=""; if(null !=employeeDeviceInfo && null !=
-			 * employeeDeviceInfo.getPic()){ pic=employeeDeviceInfo.getPic();
-			 * param.append("Size="+pic.length()+HT);
-			 * param.append("Content="+pic+HT); //param.append(LF);
-			 * list.add(param.toString()); }
-			 */
-
 		}
 		return list;
 	}
@@ -272,10 +227,9 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 	 * 
 	 * 说明 : 根据设备sn 查询 需要到当前设备上打卡的所有员工指纹模板或脸部模板
 	 * 
-	 * @param sn
-	 *            设备代码
-	 * @param type
-	 *            类型 1.指纹模板 2.面部模板
+	 * @param sn(设备代码)
+	 * @param type(类型
+	 *            1.指纹模板 2.面部模板)
 	 * @return
 	 * @author zhangshaung
 	 * @dateTime 2017年4月21日 下午7:20:14
@@ -305,9 +259,8 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 	public List<String> updateUserFingerTmpDataBySn(String sn) {
 		// 先根据设备sn 查询 需要到当前设备上打卡的所有员工指纹
 		List<EmployeeDeviceFingerFaceVo> employeeVos = this.findEmployeeFingerFaceBySn(sn, 1);
-		// 开始拼接命令
-		// 参数集
 		List<String> list = new ArrayList<String>();
+		// 开始拼接命令参数集
 		for (EmployeeDeviceFingerFaceVo eInfoVO : employeeVos) {
 			final StringBuilder param = new StringBuilder();
 			final String code = eInfoVO.getCode();
@@ -321,7 +274,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 			map.put("employeeCode", eInfoVO.getCode());
 			FingerFaceTemplate fingerTemplate = faceTemplateDao.findInfoByEmployeeCodeAndTypeAndFid(map);
 			if (null != fingerTemplate && null != fingerTemplate.getTmp()) {
-
 				String tmp = fingerTemplate.getTmp();
 				param.append("PIN=").append(code);
 				param.append(HT).append("FID=").append(fid);
@@ -331,24 +283,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 
 				list.add(param.toString());
 			}
-
-			/*
-			 * StringBuffer param = new StringBuffer(); //单个参数 Map<String,
-			 * Object> map = new HashMap<String,Object>(); map.put("type", 1);
-			 * map.put("fid", eInfoVO.getFid()); map.put("employeeCode",
-			 * eInfoVO.getCode()); FingerFaceTemplate
-			 * fingerTemplate=faceTemplateDao.
-			 * findInfoByEmployeeCodeAndTypeAndFid(map); String tmp=""; if(null
-			 * !=fingerTemplate && null != fingerTemplate.getTmp()){
-			 * tmp=fingerTemplate.getTmp();
-			 * 
-			 * param.append("PIN="+eInfoVO.getCode()+HT);
-			 * param.append("FID="+eInfoVO.getFid()+HT);
-			 * param.append("Size="+eInfoVO.getSize()+HT);
-			 * param.append("Valid="+eInfoVO.getValid()+HT);
-			 * param.append("TMP="+tmp); // param.append(LF);
-			 * list.add(param.toString()); }
-			 */
 
 		}
 		return list;
@@ -367,10 +301,8 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 	public List<String> updateUserFaceTmpDataBySn(String sn) {
 		// 先根据设备sn 查询 需要到当前设备上打卡的所有员工面部模板
 		List<EmployeeDeviceFingerFaceVo> employeeVos = this.findEmployeeFingerFaceBySn(sn, 2);
-		// 开始拼接命令
-		// 参数集
-
 		List<String> list = new ArrayList<String>();
+		// 开始拼接命令参数集
 		for (EmployeeDeviceFingerFaceVo eInfoVO : employeeVos) {
 
 			final StringBuilder param = new StringBuilder();
@@ -396,23 +328,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 
 				list.add(param.toString());
 			}
-
-			/*
-			 * StringBuffer param = new StringBuffer(); // 单个参数 Map<String,
-			 * Object> map = new HashMap<String, Object>(); map.put("type", 1);
-			 * map.put("fid", eInfoVO.getFid()); map.put("employeeCode",
-			 * eInfoVO.getCode()); FingerFaceTemplate faceTemplate =
-			 * faceTemplateDao.findInfoByEmployeeCodeAndTypeAndFid(map); String
-			 * tmp = ""; if (null != faceTemplate && null !=
-			 * faceTemplate.getTmp()) { tmp = faceTemplate.getTmp();
-			 * param.append("PIN=" + eInfoVO.getCode() + HT);
-			 * param.append("FID=" + eInfoVO.getFid() + HT);
-			 * param.append("Size=" + eInfoVO.getSize() + HT);
-			 * param.append("Valid=" + eInfoVO.getValid() + HT);
-			 * param.append("TMP=" + tmp); // param.append(LF);
-			 * 
-			 * list.add(param.toString()); }
-			 */
 		}
 		return list;
 	}
@@ -446,7 +361,7 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 	}
 
 	/**
-	 * 需要到当前设备上打卡的所有员工的数量
+	 * 说明 : 需要到当前设备上打卡的所有员工的数量
 	 * 
 	 * @author zhangshuagn
 	 * @param param
