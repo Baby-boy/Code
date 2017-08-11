@@ -477,7 +477,7 @@ public class ClockServlet extends HttpServlet {
 				final Boolean deviceOffline = device.getState() == 1;// 当设备state=1时,说明设备未使用
 
 				if (deviceOffline || newDevice) {// 新设备接入,而且是未使用的设备
-					pushCommand(sn, CommandWrapper.CMD_RELOAD_OPTIONS, CommandWrapper.DEV_RELOAD_OPTIONS_ID_PREFIX + timestamp);
+					// pushCommand(sn, CommandWrapper.CMD_RELOAD_OPTIONS, CommandWrapper.DEV_RELOAD_OPTIONS_ID_PREFIX + timestamp);
 				}
 
 				if (deviceOnline) {// 设备在使用,查询该设备存在的需要执行的命令
@@ -1251,6 +1251,8 @@ public class ClockServlet extends HttpServlet {
 						} else {
 							command = String.format(task.getCommand(), task.getId().toString(), args);
 						}
+					} else {
+						command = String.format(task.getCommand(), task.getId().toString());
 					}
 				}
 				// 根据任务ID,修改设备SN未执行(state=1)的命令的状态为处理中(state=2)

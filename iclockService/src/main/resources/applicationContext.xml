@@ -15,13 +15,8 @@
 
 	<context:annotation-config />
 
-	<context:component-scan base-package="com.glanway.iclock.service">
-		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
-	</context:component-scan>
-
-	<context:component-scan base-package="com.glanway.iclock.utils">
-		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
-	</context:component-scan>
+	<context:component-scan base-package="com.glanway.iclock.service"/>
+	<context:component-scan base-package="com.glanway.iclock.utils"/>
 	<context:component-scan base-package="com.glanway.iclock.server" />
 	
 	<aop:aspectj-autoproxy />
@@ -66,7 +61,7 @@
 	<task:annotation-driven />
 	<bean
 		class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
-	<context:component-scan base-package="com.glanway.iclock.controller.taskJob" />
+	<context:component-scan base-package="com.glanway.iclock.taskJob" />
 	<!--End task 定时器 -->
 
 	<import resource="spring-mybatis.xml" />

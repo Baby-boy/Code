@@ -23,8 +23,7 @@
         <!-- 如果 Mapper 和 xml 不在同一目录或名称不同, 需要 -->
         <property name="mapperLocations">
             <array>
-                <value>classpath*:org/ponly/webbase/dao/support/mbt/SupportMapper.xml</value>
-                <value>classpath:com/glanway/iclock/dao/**/*Mapper.xml</value>
+                <value>classpath:com/glanway/iclock/dao/**/*.xml</value>
             </array>
         </property>
         <property name="typeAliasesPackage" value="com.glanway.iclock.entity"/>
