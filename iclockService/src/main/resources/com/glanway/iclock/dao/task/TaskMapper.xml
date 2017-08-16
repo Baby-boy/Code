@@ -60,25 +60,34 @@
 	 
 	 <!-- 根据条件查询第一条数据 -->
 	 <select id="findOneTask" parameterType="map" resultMap="BaseTaskMap">
-		SELECT  
-			T.ID,T.SN,T.STATE,T.COMMAND,T.ARGS,T.START_HANDLE_TIME,T.COMPLETE_TIME 
-		FROM T_TASK T 
-		WHERE 
-			<include refid="baseFilter"/>
-			AND ROWNUM = 1
-		ORDER BY T.ID ASC
+		SELECT 
+			T.ID,T.SN,T.STATE,T.COMMAND,T.ARGS,T.START_HANDLE_TIME,T.COMPLETE_TIME
+		FROM(
+			SELECT
+				T.ID,T.SN,T.STATE,T.COMMAND,T.ARGS,T.START_HANDLE_TIME,T.COMPLETE_TIME
+			FROM
+				T_TASK T
+			WHERE
+				<include refid="baseFilter"/>
+			ORDER BY T.ID ASC
+		) T WHERE ROWNUM = 1 
 	 </select>
 	 
 	 <!-- 校验上条命令执行情况 -->
 	 <select id="checkCommandHandle" resultType="Task">
-	 	SELECT
-			ID,SN,STATE,COMMAND,ARGS,START_HANDLE_TIME,COMPLETE_TIME
-		FROM
-			T_TASK
-		WHERE DELETED = 0
-		AND STATE = 2 
-		AND SN = #{sn}
-		AND ID <![CDATA[<]]> #{id}
+		SELECT
+			T.ID,T.SN,T.STATE,T.COMMAND,T.ARGS,T.START_HANDLE_TIME,T.COMPLETE_TIME
+		FROM (
+		 	SELECT
+				ID,SN,STATE,COMMAND,ARGS,START_HANDLE_TIME,COMPLETE_TIME
+			FROM
+				T_TASK
+			WHERE DELETED = 0
+			AND STATE = 2 
+			AND SN = #{sn}
+			AND ID <![CDATA[<]]> #{id}
+			ORDER BY ID ASC
+		) T WHERE ROWNUM = 1 
 	 </select>
 	 
 	 <insert id="save" useGeneratedKeys="true" keyProperty="id">

@@ -1,6 +1,6 @@
 package com.glanway.iclock.util.sms;
 
-import com.glanway.iclock.util.HttpUtils;
+import com.glanway.iclock.util.HttpUtil;
 import com.google.common.collect.Maps;
 
 import org.slf4j.Logger;
@@ -207,7 +207,7 @@ public class IpyySmsSenderImpl implements SmsSender {
 
     public static void post(String url, Map<String, String> data) {
         try {
-            InputStream is = HttpUtils.post(url, data, 1000);
+            InputStream is = HttpUtil.post(url, data, 1000);
             String ret = IOUtils.toString(is, Charset.forName("UTF-8"), true);
         } catch (IOException e) {
             e.printStackTrace();

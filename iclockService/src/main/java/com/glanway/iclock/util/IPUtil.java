@@ -59,7 +59,7 @@ public class IPUtil {
         Matcher mat = pat.matcher(ip);
         Boolean isIp = mat.find();
         if(isIp){
-            String result =  HttpUtils.URLGet(ISP_URL, ImmutableMap.<String, String>of("ip", ip), null);
+            String result =  HttpUtil.URLGet(ISP_URL, ImmutableMap.<String, String>of("ip", ip), null);
             try {
                 new String (result.getBytes("UTF-8"),"UTF-8");
             } catch (UnsupportedEncodingException e) {

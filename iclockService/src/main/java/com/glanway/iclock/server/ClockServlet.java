@@ -48,7 +48,7 @@ import com.glanway.iclock.service.employee.FingerFaceTemplateService;
 import com.glanway.iclock.service.sign.DeviceService;
 import com.glanway.iclock.service.sign.SignService;
 import com.glanway.iclock.service.task.TaskService;
-import com.glanway.iclock.util.DateUtils;
+import com.glanway.iclock.util.DateUtil;
 import com.glanway.iclock.util.StringUtil;
 import com.glanway.iclock.util.TimeUtil;
 
@@ -222,17 +222,19 @@ public class ClockServlet extends HttpServlet {
 		final Date now = new Date();
 
 		// 不论考勤机是怎么发起请求进入服务器中,这台考勤机都得在系统中存在,不存在,则新建设备
-		Device device = deviceService.selectByDeviceSn(sn);// 查询该设备是否存在(未删除)
-		if (null == device) {
-			device = new Device();
-			device.setSn(sn);
-			device.setName("中控考勤机-" + sn);
-			// device.setIp(ip);// 第一次新建,不知道,后面进行维护
-			device.setFirstConnectionTime(now);
-			device.setLastConnectionTime(now);
-			device.setState(1);
-			device.setSyncState(1);
-			deviceService.saveDevice(device);
+		if (StringUtils.isNotEmpty(sn)) {
+			Device device = deviceService.selectByDeviceSn(sn);// 查询该设备是否存在(未删除)
+			if (null == device) {
+				device = new Device();
+				device.setSn(sn);
+				device.setName("中控考勤机-" + sn);
+				// device.setIp(ip);// 第一次新建,不知道,后面进行维护
+				device.setFirstConnectionTime(now);
+				device.setLastConnectionTime(now);
+				device.setState(1);
+				device.setSyncState(1);
+				deviceService.saveDevice(device);
+			}
 		}
 
 		if (LOGGER.isDebugEnabled()) {
@@ -272,17 +274,19 @@ public class ClockServlet extends HttpServlet {
 		final Date now = new Date();
 
 		// 不论考勤机是怎么发起请求进入服务器中,这台考勤机都得在系统中存在,不存在,则新建设备
-		Device device = deviceService.selectByDeviceSn(sn);// 查询该设备是否存在(未删除)
-		if (null == device) {
-			device = new Device();
-			device.setSn(sn);
-			device.setName("中控考勤机-" + sn);
-			// device.setIp(ip);// 第一次新建,不知道,后面进行维护
-			device.setFirstConnectionTime(now);
-			device.setLastConnectionTime(now);
-			device.setState(1);
-			device.setSyncState(1);
-			deviceService.saveDevice(device);
+		if (StringUtils.isNotEmpty(sn)) {
+			Device device = deviceService.selectByDeviceSn(sn);// 查询该设备是否存在(未删除)
+			if (null == device) {
+				device = new Device();
+				device.setSn(sn);
+				device.setName("中控考勤机-" + sn);
+				// device.setIp(ip);// 第一次新建,不知道,后面进行维护
+				device.setFirstConnectionTime(now);
+				device.setLastConnectionTime(now);
+				device.setState(1);
+				device.setSyncState(1);
+				deviceService.saveDevice(device);
+			}
 		}
 
 		if (LOGGER.isDebugEnabled()) {
@@ -461,7 +465,7 @@ public class ClockServlet extends HttpServlet {
 	protected void handlePull(final String sn, final HttpServletRequest req, final HttpServletResponse resp)
 			throws IOException {
 		final String info = req.getParameter("INFO"); // 设备第一次向服务器请求命令,或者设备新登记用户／指纹和有新的考勤记录时.
-		final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+		// final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
 
 		if (LOGGER.isInfoEnabled()) {
 			LOGGER.info("设备 {} 发送心跳", sn);
@@ -551,7 +555,7 @@ public class ClockServlet extends HttpServlet {
 
 		final String type = verifyMap.get(verify);
 		LOGGER.info("系统存储从考勤机返回的考勤时间: {}", time);
-		final Date newDate = DateUtils.str2Date(time, DateUtils.DATETIME_FORMAT_YYYY_MM_DD_HHMMSS);
+		final Date newDate = DateUtil.str2Date(time, DateUtil.DATETIME_FORMAT_YYYY_MM_DD_HHMMSS);
 		LOGGER.info("系统格式化后的考勤机考勤时间: {}", newDate);
 
 		// 获取newDate的前一分钟值 , 为了过滤同一人短时间重复打卡的
@@ -770,7 +774,7 @@ public class ClockServlet extends HttpServlet {
 			final String valid = info.get("VALID");
 			final String faceTmp = info.get("TMP");
 			final String face = 0 < size ? faceTmp.substring(0, size) : faceTmp;
-			final String key = pin + '-' + fid;
+			final String key = pin + "-" + fid;
 
 			FingerFaceTemplate fft = new FingerFaceTemplate();
 			fft.setEmployeeCode(pin);
@@ -806,8 +810,8 @@ public class ClockServlet extends HttpServlet {
 				LOGGER.info("设备{}上用户{} 脸纹 {} 发生变动, 有效性: {}, 脸纹: {}", sn, pin, fid, valid, face);
 			}
 
-			cacheDeviceItem(sn, TAB_FACE, pin + "-" + fid, timestamp + "|" + item);
-			cacheDeviceItem("*", TAB_FACE, pin + "-" + fid, item);
+			cacheDeviceItem(sn, TAB_FACE, key, timestamp + "|" + item);
+			cacheDeviceItem("*", TAB_FACE, key, item);
 			// pushMulticastCommand(sn, CMD_DATA_UPDATE_FACE, "SYNC_FE-" + sn +
 			// "-" + timestamp, item);
 		} catch (Exception e) {
@@ -934,7 +938,6 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	/**
-	 * 
 	 * 说明 : 检查设备sn中员工key的信息是否变动
 	 * 
 	 * @param sn
@@ -1012,6 +1015,7 @@ public class ClockServlet extends HttpServlet {
 					taskService.recordTaskLog(Long.parseLong(commandId));
 				} else {
 					LOGGER.warn("设备代码: {} 执行命令不成功, 异常代码为:{}, 返回信息为{}", sn, commandId, commandType);
+					taskService.updateStateById(Long.parseLong(commandId), 4, null);// 将命令状态设置为4,为命令执行异常
 				}
 				return;
 			}
