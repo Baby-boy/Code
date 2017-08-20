@@ -5,7 +5,7 @@
 		<id column="ID" property="id" />
 		<result column="EMPLOYEE_CODE" property="employeeCode" />
 		<result column="PRI" property="pri" />
-		<result column="PIC" property="pic" />
+		<result column="PIC" property="pic" jdbcType="CLOB"/>
 		<result column="PWD" property="pwd" />
 		<result column="CARD" property="card" />
 		<result column="DELETED" property="deleted" />

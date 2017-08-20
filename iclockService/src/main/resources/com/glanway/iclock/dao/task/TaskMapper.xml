@@ -25,6 +25,13 @@
 	 	MOD_PRO_ID, LAST_MODIFIED_BY, LAST_MODIFIED_DATE
 	 </sql>
 	 
+	 <select id="findTaskById" resultType="Task">
+	 	SELECT 
+	 		<include refid="baseCols"/> 
+	 	FROM T_TASK 
+	 	WHERE ID = #{id}
+	 </select>
+	 
 	 <sql id="baseFilter">
 	 	T.DELETED = 0
 	 	<if test="sn != null">

@@ -573,7 +573,12 @@
 				<jdbc.url>jdbc:oracle:thin:@114.80.176.10:1521:XE</jdbc.url>
 				<jdbc.username>YCTTEST</jdbc.username>
 				<jdbc.password>YAMATOYCT</jdbc.password>
-
+				<log.filePath>/opt/tomcat-yct/log</log.filePath>
+				<!-- <jdbc.url>jdbc:oracle:thin:@127.0.0.1:1521:ORCL</jdbc.url>
+				<jdbc.username>YAMATO</jdbc.username>
+				<jdbc.password>root</jdbc.password> 
+				<log.filePath>E:</log.filePath> -->
+				
 				<tomcat.path>/${project.artifactId}</tomcat.path>
 				<webAppRootKey>webAppRootKey.${artifactId}</webAppRootKey>
 			</properties>
@@ -615,6 +620,7 @@
 				<jdbc.username>YCTTEST</jdbc.username>
 				<jdbc.password>YAMATOYCT</jdbc.password>
 
+				<log.filePath>/home/ycthr/env/tomcat-test/log</log.filePath>
 				<httpclient.request.url>http://114.80.227.222:8081</httpclient.request.url>
 				<tomcat.path>/ROOT</tomcat.path>
 				<webAppRootKey>webAppRootKey.${artifactId}</webAppRootKey>
@@ -635,7 +641,8 @@
 				<jdbc.url>jdbc:oracle:thin:@172.16.16.220:1521:YCT</jdbc.url>
 				<jdbc.username>YCTHR</jdbc.username>
 				<jdbc.password>yamatoYCT</jdbc.password>
-
+	
+				<log.filePath>/home/ycthr/env/tomcat-formal/log</log.filePath>
 				<httpclient.request.url>http://114.80.227.222:8080</httpclient.request.url>
 				<tomcat.path>/ROOT</tomcat.path>
 				<webAppRootKey>webAppRootKey.${artifactId}</webAppRootKey>

@@ -99,4 +99,14 @@ public interface TaskService extends BaseService<Task> {
 	 */
 	public Task checkCommandHandle(String sn, Long id);
 
+	/**
+	 * 说明: 根据ID查询命令任务
+	 *
+	 * @param commandId
+	 * @return
+	 * @author FUQIHAO
+	 * @dateTime 2017年8月18日 下午2:44:11
+	 */
+	public Task findTaskById(Long id);
+
 }

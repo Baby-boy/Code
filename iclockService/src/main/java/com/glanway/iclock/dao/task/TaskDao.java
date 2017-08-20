@@ -44,4 +44,7 @@ public interface TaskDao extends BaseDao<Task> {
 	/** 校验命令执行情况 */
 	public Task checkCommandHandle(@Param("sn") String sn, @Param("id") Long id);
 
+	/** 根据主键查询信息 */
+	public Task findTaskById(@Param("id") Long id);
+
 }

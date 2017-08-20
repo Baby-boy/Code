@@ -168,21 +168,22 @@ public class CommandWrapper {
 	public static final String CMD_DATA_QUERY_PHOTO_ALL = "C:%s:DATA QUERY USERPIC";
 	public static final String CMD_DATA_QUERY_FACE_ALL = "C:%s:DATA QUERY FACE";
 
-	/**
-	 * 更新用户信息 C:%s:DATA UPDATE USERINFO %s
-	 */
+	/** 更新用户基本信息 */
 	public static final String CMD_DATA_UPDATE_USER = "C:%s:DATA UPDATE USERINFO %s";
-
+	/** 更新用户指纹模板信息 */
 	public static final String CMD_DATA_UPDATE_FINGER = "C:%s:DATA UPDATE FINGERTMP %s";
+	/** 更新用户头像信息 */
 	public static final String CMD_DATA_UPDATE_PHOTO = "C:%s:DATA UPDATE USERPIC %s";
+	/** 更新用户脸纹模板信息 */
 	public static final String CMD_DATA_UPDATE_FACE = "C:%s:DATA UPDATE FACE %s";
 
-	/**
-	 * 删除用户信息指令 C:%s:DATA DELETE USERINFO %s
-	 */
+	/** 删除用户基本信息 */
 	public static final String CMD_DATA_DELETE_USER = "C:%s:DATA DELETE USERINFO %s";
+	/** 删除用户指纹模板信息 */
 	public static final String CMD_DATA_DELETE_FINGER = "C:%s:DATA DELETE FINGERTMP %s";
+	/** 删除用户头像信息 */
 	public static final String CMD_DATA_DELETE_PHOTO = "C:%s:DATA DELETE USERPIC %s";
+	/** 删除用户脸纹模板信息 */
 	public static final String CMD_DATA_DELETE_FACE = "C:%s:DATA DELETE FACE %s";
 
 	public static final String DEV_INIT_OVER_ID_PREFIX = "INIT_OVER-";
@@ -196,5 +197,4 @@ public class CommandWrapper {
 	public static final String DEV_INIT_CLEAR_ALL_USER_ID_PREFIX = "INIT_CAU-";
 	public static final String DEV_RELOAD_DATA_ID_PREFIX = "INIT_RD-";
 	public static final String DEV_RELOAD_OPTIONS_ID_PREFIX = "INIT_RO-";
-
 }

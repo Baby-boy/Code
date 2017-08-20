@@ -49,6 +49,7 @@ import com.glanway.iclock.service.sign.DeviceService;
 import com.glanway.iclock.service.sign.SignService;
 import com.glanway.iclock.service.task.TaskService;
 import com.glanway.iclock.util.DateUtil;
+import com.glanway.iclock.util.FileUtil;
 import com.glanway.iclock.util.StringUtil;
 import com.glanway.iclock.util.TimeUtil;
 
@@ -329,10 +330,12 @@ public class ClockServlet extends HttpServlet {
 						handleAdminstratorActionItem(sn, now, line.substring(5));
 					} else {
 						LOGGER.warn("Unknown OPERLOG message: {}", line);
+						new FileUtil(config.getProperty("log.filePath")).log("Unknown OPERLOG message: {}", line);
 					}
 				}
 			} else {
 				LOGGER.warn("Unknown message table={}", table);
+				new FileUtil(config.getProperty("log.filePath")).log("Unknown message table={}", table);
 			}
 			doResponse(resp, "OK");
 		} else if (PUSH_COMMAND_RETURN_URI.equals(requestUri)) {
@@ -351,27 +354,22 @@ public class ClockServlet extends HttpServlet {
 					while (null != (line = reader.readLine())) {
 						buff.append(line).append("\n");
 					}
-
 					final Map<String, String> info = tokenizeToMap(buff.toString(), "\n");
 					String dev = info.get("DeviceID");
 					final String deviceId = null != dev ? dev : sn; // 设备ID.
 					final String deviceName = info.get("~DeviceName"); // 设备名称.
 					final String platform = info.get("~Platform"); // 设备平台.
-					final String pushVersion = info.get("PushVersion"); // PUSH
-																		// SDK版本.
+					final String pushVersion = info.get("PushVersion"); // PUSH(SDK版本).
 					final String fingerVersion = info.get("FPVersion"); // 指纹版本.
 					final String faceVersion = info.get("FaceVersion"); // 脸纹版本.
-
 					final String mac = info.get("MAC"); // MAC
 					final String ip = info.get("IPAddress"); // IP
-
 					final String transactionCount = info.get("TransactionCount"); // 当前考勤记录数.
 					final String userCount = info.get("UserCount"); // 当前用户数.
 					final String fingerCount = info.get("FPCount"); // 当前指纹数(一个人可能有多个).
 					final String faceCount = info.get("FaceCount"); // 当前脸数(一个人只会有一个脸纹).
 
-					LOGGER.info(
-							"设备名称: {}, 设备ID: {}, 平台: {}, PUSH SDK版本: {}, 指纹算法版本: {}, 人脸算法版本: {},"
+					LOGGER.info("设备名称: {}, 设备ID: {}, 平台: {}, PUSH SDK版本: {}, 指纹算法版本: {}, 人脸算法版本: {},"
 									+ " MAC: {}, IP: {}, 考勤记录数: {}, 用户数: {}, 指纹数: {}, 人脸数: {}",
 							deviceName, deviceId, platform, pushVersion, fingerVersion, faceVersion, mac, ip,
 							transactionCount, userCount, fingerCount, faceCount);
@@ -450,6 +448,7 @@ public class ClockServlet extends HttpServlet {
 
 		if (LOGGER.isInfoEnabled()) {
 			LOGGER.info("设备 [{}], PUSH SDK [{}], 语言 [{}] 初始化推送配置: {}", sn, pushVersion, language, cfg);
+			new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 初始化配置已完成, 具体配置信息查看请联系系统维护人员", sn);
 		}
 
 		doResponse(resp, cfg);
@@ -489,7 +488,7 @@ public class ClockServlet extends HttpServlet {
 
 					if (StringUtils.isNoneEmpty(command)) {
 						if (LOGGER.isInfoEnabled()) {
-							LOGGER.info("向设备{}下发命令:{}", sn, command);
+							LOGGER.info("向设备{} 下发命令如下:{}", sn, command);
 						}
 						doResponse(resp, command);
 					}
@@ -539,12 +538,11 @@ public class ClockServlet extends HttpServlet {
 			LOGGER.warn("Skip invalid clock item: {}", item);
 			return; // skip invalid item.
 		}
-
+		
 		final String pin = infos[0]; // 考勤号码
-		final String time = infos[1]; // 考勤时间, yyyy-MM-dd HH:mm:ss
-		final String status = infos[2];// 考勤状态, 0-上班签到 1-下班签退 2-外出 3-外出返回 4-加班签到
-										// 5-加班签退 8-就餐开始 9-就餐结束
-		final String verify = infos[3]; // 验证方式, 0=密码, 1=指纹, 2=卡, 9=其他
+		final String time = infos[1]; // 考勤时间(yyyy-MM-dd HH:mm:ss)
+		final String status = infos[2];// 考勤状态(0:上班签到,1:下班签退,2:外出,3:外出返回,4:加班签到,5:加班签退,8:就餐开始,9:就餐结束)
+		final String verify = infos[3]; // 验证方式(0:密码,1:指纹,2:卡,9:其他)
 
 		final Map<String, String> verifyMap = new HashMap<String, String>();
 		verifyMap.put("0", "密码");
@@ -553,40 +551,48 @@ public class ClockServlet extends HttpServlet {
 		verifyMap.put("9", "其他");
 		verifyMap.put("16", "脸纹");
 
-		final String type = verifyMap.get(verify);
-		LOGGER.info("系统存储从考勤机返回的考勤时间: {}", time);
-		final Date newDate = DateUtil.str2Date(time, DateUtil.DATETIME_FORMAT_YYYY_MM_DD_HHMMSS);
-		LOGGER.info("系统格式化后的考勤机考勤时间: {}", newDate);
-
-		// 获取newDate的前一分钟值 , 为了过滤同一人短时间重复打卡的
-		final Date beforeDate = TimeUtil.getTimeBeforeMinute(newDate, -1);
-		LOGGER.info("系统格式化后的考勤机考勤时间的前一分钟: {}", beforeDate);
-
-		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("employeeCode", pin);
-		params.put("sn", sn);
-		params.put("time", newDate);
-		params.put("beforeDate", beforeDate);
-		params.put("state", status);
-		params.put("verify", verify);
-
-		/** 当数据库里面有当前这条考勤记录,就不保存 */
-		int count = signService.count(params);
-		if (count == 0) {
-			Sign sign = new Sign();
-			sign.setEmployeeCode(pin);
-			sign.setSn(sn);
-			sign.setTime(newDate);
-			sign.setState(status);
-			sign.setVerify(verify);
-			sign.setDeleted("0");
-			sign.setCreatedDate(new Date());
-
-			signService.save(sign);
+		try {
+			final String type = verifyMap.get(verify);
+			LOGGER.info("系统存储从考勤机返回的考勤时间: {}", time);
+			final Date newDate = DateUtil.str2Date(time, DateUtil.DATETIME_FORMAT_YYYY_MM_DD_HHMMSS);
+			LOGGER.info("系统格式化后的考勤机考勤时间: {}", newDate);
+	
+			// 获取newDate的前一分钟值 , 为了过滤同一人短时间重复打卡的
+			final Date beforeDate = TimeUtil.getTimeBeforeMinute(newDate, -1);
+	
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("employeeCode", pin);
+			params.put("sn", sn);
+			params.put("time", newDate);
+			params.put("beforeDate", beforeDate);
+			params.put("state", status);
+			params.put("verify", verify);
+	
+			/** 当数据库里面有当前这条考勤记录,就不保存 */
+			int count = signService.count(params);
+			if (count == 0) {
+				Sign sign = new Sign();
+				sign.setEmployeeCode(pin);
+				sign.setSn(sn);
+				sign.setTime(newDate);
+				sign.setState(status);
+				sign.setVerify(verify);
+				sign.setDeleted("0");
+				sign.setCreatedDate(new Date());
+	
+				signService.save(sign);
+				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 在{} 发生用户{} 打卡, 打卡方式为{}, 已经将打卡记录保存到系统中.", 
+						sn, time, pin, (null != type ? type : verify));
+			}
+	
+			LOGGER.info("设备{} 在{} 发生用户打卡(温馨提示: 此打卡记录可能为重复打卡记录, 所有有可能未保存到系统中), 用户:{}, 打卡方式:{}, 打卡状态:{}", sn, time, pin,
+					(null != type ? type : verify), status);
+		} catch (Exception e) {
+			e.printStackTrace();
+			LOGGER.info("设备{} 向系统上传用户{} 在{} 的打卡记录时发生异常: {}", sn, pin, time, e.getMessage());
+			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 在{} 的打卡记录时发生异常. 异常信息查看请联系系统维护人员.", sn,
+					pin, time);
 		}
-
-		LOGGER.info("设备{} 在 {} 发生用户打卡, 用户 {}, 打卡方式 {}, 打卡状态: {}", sn, time, pin, (null != type ? type : verify),
-				status);
 	}
 
 	protected void handleUserItem(final String sn, final Date now, final String item) {
@@ -594,105 +600,111 @@ public class ClockServlet extends HttpServlet {
 		final Map<String, String> info = tokenizeToMap(item, "\t");
 		final String pin = info.get("PIN"); // 考勤号码.
 		final String name = info.get("Name"); // 用户姓名.
-		final String pri = info.get("Pri"); // 权限: 14-管理员, 0-普通用户
-		final String password = info.get("Passwd"); // 密码.
-		final String card = info.get("Card"); // ID 卡号码.
-												// 如果使用[]时则为hex16进制,否则为原始卡号
-		final String grp = info.get("Grp"); // 组别(用于门禁)
-		final String tz = info.get("TZ"); // 时段(用于门禁)
-		final String verify = info.get("Verify"); // ??
-
-		EmployeeDeviceInfo empl1 = new EmployeeDeviceInfo();
-		empl1.setEmployeeCode(pin);
-		empl1.setPri(pri);
-		empl1.setPwd(password);
-		empl1.setCard(card);
-		int result = isChangedEmployeeInfo(1, empl1);
+		String pri = info.get("Pri"); // 权限: 14-管理员, 0-普通用户
+		String password = info.get("Passwd"); // 密码.
+		final String card = info.get("Card"); // ID 卡号码,如果使用[]时则为hex16进制,否则为原始卡号
+		// final String grp = info.get("Grp"); // 组别(用于门禁)
+		// final String tz = info.get("TZ"); // 时段(用于门禁)
+		// final String verify = info.get("Verify"); // ??
 		
-		// 在这里设置管理员的权限永远不会被覆盖
-		if (this.config.getProperty("deviceManager").contains(pin)) {
-			// 根据职员代码查询员工
-			EmployeeDeviceInfo employeeInfo = employeeDeviceInfoService.getInfoByEmployeeCode(pin);
-			if (null != employeeInfo) {
-				employeeInfo.setPri("14");
-				employeeInfo.setPwd(this.config.getProperty("deviceManagerPwd"));
-				employeeDeviceInfoService.updateById(employeeInfo);
-				result = 0;
+		try {
+			EmployeeDeviceInfo employeeDevInfo= new EmployeeDeviceInfo();
+			employeeDevInfo.setEmployeeCode(pin);
+			employeeDevInfo.setPri(pri);
+			employeeDevInfo.setPwd(password);
+			employeeDevInfo.setCard(card);
+			int result = isChangedEmployeeInfo(1, employeeDevInfo);
+			
+			// 在这里设置管理员的权限永远不会被覆盖
+			if (config.getProperty("deviceManager").contains(pin)) {
+				// 根据职员代码查询员工
+				EmployeeDeviceInfo employeeInfo = employeeDeviceInfoService.getInfoByEmployeeCode(pin);
+				if (null != employeeInfo) {
+					employeeInfo.setPri("14");
+					employeeInfo.setPwd(config.getProperty("deviceManagerPwd"));
+					employeeDeviceInfoService.updateById(employeeInfo);
+					pri = "14";
+					password = config.getProperty("deviceManagerPwd");
+					result = 0;
+				}
 			}
+			
+			/**
+			 * result(0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:
+			 * 员工基本信息没有存储(但是表中有员工信息记录)
+			 */
+			if (result == 1) {
+				employeeDevInfo.setCreatedDate(new Date());
+				employeeDevInfo.setDeleted("0");
+				employeeDeviceInfoService.save(employeeDevInfo);
+				
+				LOGGER.info("设备{} 上新增用户{} 的基本信息, 姓名:{}, 权限:{}, 密码:{}, 卡号:{}", sn, pin, name, pri, password, card);
+				new FileUtil(config.getProperty("log.filePath"), sn).log(
+						"设备{} 上新增用户{} 的基本信息, 姓名:{}, 权限:{}, 密码:{}, 卡号:{}, 已经将用户基本信息保存到系统中.", sn, pin, name,
+						pri.equals("14") ? "超级管理员" : "普通用户", StringUtils.isNotEmpty(password) ? password : "无",
+						StringUtils.isNotEmpty(card) ? card : "无");
+			} else if (result == 2 || result == 4) {
+				EmployeeDeviceInfo employeeDeviceInfo = employeeDeviceInfoService.getInfoByEmployeeCode(pin);
+				employeeDeviceInfo.setPri(pri);
+				employeeDeviceInfo.setPwd(password);
+				employeeDeviceInfo.setCard(card);
+				employeeDeviceInfo.setLastModifiedDate(new Date());
+				employeeDeviceInfoService.update(employeeDeviceInfo);
+	
+				LOGGER.info("设备{} 上用户{} 的基本信息发生变动, 最新信息如下, 姓名:{}, 权限:{}, 密码:{}, 卡号:{}", sn, pin, name, pri, password,
+						card);
+				new FileUtil(config.getProperty("log.filePath"), sn).log(
+						"设备{} 上用户{} 的基本信息发生变动, 最新信息如下, 姓名:{}, 权限:{}, 密码:{}, 卡号:{}, 已经将用户最新基本信息更新到系统中.", sn, pin, name,
+						pri.equals("14") ? "超级管理员" : "普通用户", StringUtils.isNotEmpty(password) ? password : "无",
+						StringUtils.isNotEmpty(card) ? card : "无");
+			}
+	
+			// 缓存设备信息, 用于删除脏检查.
+			cacheDeviceItem(sn, TAB_USERINFO, pin, timestamp + "|" + item);
+			cacheDeviceItem("*", TAB_USERINFO, pin, item);
+	
+			// pushMulticastCommand(sn, CMD_DATA_UPDATE_USER, "SYNC_UR-" + sn + "-" + timestamp, item);
+		} catch (Exception e) {
+			e.printStackTrace();
+			LOGGER.info("设备{} 向系统上传用户{} 的基本信息时发生异常: {}", sn, pin, e.getMessage());
+			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的基本信息时发生异常. 异常信息查看请联系系统维护人员.", sn,
+					pin);
 		}
-		
-		/**
-		 * result =
-		 * {0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:员工基本信息没有存储(
-		 * 但是表中有员工信息记录)}
-		 */
-		if (result == 1) {
-			empl1.setCreatedDate(new Date());
-			empl1.setDeleted("0");
-			employeeDeviceInfoService.save(empl1);
-			LOGGER.debug("设备{}上用户{}信息新增: 姓名: {}, 权限: {}, 密码: {}, 卡号: {}", sn, pin, name, pri, password, card, grp, tz,
-					verify);
-		} else if (result == 2 || result == 4) {
-
-			EmployeeDeviceInfo employeeDeviceInfo = employeeDeviceInfoService.getInfoByEmployeeCode(pin);
-
-			employeeDeviceInfo.setPri(pri);
-			employeeDeviceInfo.setPwd(password);
-			employeeDeviceInfo.setCard(card);
-
-			employeeDeviceInfo.setLastModifiedDate(new Date());
-			employeeDeviceInfoService.update(employeeDeviceInfo);
-
-			LOGGER.debug("设备{}上用户{}信息发生变动: 姓名: {}, 权限: {}, 密码: {}, 卡号: {}", sn, pin, name, pri, password, card, grp, tz,
-					verify);
-		}
-
-		// 缓存设备信息, 用于删除脏检查.
-		cacheDeviceItem(sn, TAB_USERINFO, pin, timestamp + "|" + item);
-		cacheDeviceItem("*", TAB_USERINFO, pin, item);
-
-		// pushMulticastCommand(sn, CMD_DATA_UPDATE_USER, "SYNC_UR-" + sn + "-"
-		// + timestamp, item);
 	}
 
 	protected void handleFingerprintItem(final String sn, final Date now, final String item) {
+		final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
+		final Map<String, String> info = tokenizeToMap(item, "\t");
+		final String pin = info.get("PIN");
+		final String fid = info.get("FID");
+		final int size = toIntQuiet(info.get("Size"), 0);
+		final String valid = info.get("Valid");
+		final String fingerTmp = info.get("TMP");
+		final String finger = 0 < size ? fingerTmp.substring(0, size) : fingerTmp;
+		final String key = pin + "-" + fid;
+
 		try {
-
-			final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
-			final Map<String, String> info = tokenizeToMap(item, "\t");
-			final String pin = info.get("PIN");
-			final String fid = info.get("FID");
-			final int size = toIntQuiet(info.get("Size"), 0);
-			final String valid = info.get("Valid");
-			final String fingerTmp = info.get("TMP");
-			final String finger = 0 < size ? fingerTmp.substring(0, size) : fingerTmp;
-			final String key = pin + "-" + fid;
-
 			FingerFaceTemplate fft = new FingerFaceTemplate();
-
 			fft.setEmployeeCode(pin);
 			fft.setFid(fid);
 			fft.setTmpSize(size);
 			fft.setTmp(finger);
 			fft.setType(1);
 			fft.setValid(valid);
-
-			/**
-			 * 将设备上传的数据和数据库里面做比较 如果没有变动,就不做处理 如果发生变化,就做修改 如果服务器中没有这个数据,就插入数据库
-			 */
-			/**
-			 * result =
-			 * {0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp),4:
-			 * 设备在该次上传的中tmp为空}
-			 */
 			int result = isChangedFingerItmp(fft);
 
+			/**
+			 * result(0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp)
+			 * ,4: 设备在该次上传的中tmp为空)
+			 */
 			if (result == 1 || result == 3) {
 				fft.setDeleted("0");
 				fft.setCreatedDate(new Date());
-
 				fingerFaceTemplateService.save(fft);
-				LOGGER.debug("设备{}上用户{} 指纹 {} 发生变动, 有效性: {}, 指纹: {}", sn, pin, fid, valid, finger);
+				
+				LOGGER.info("设备{} 上新增用户{} 的指纹{} 信息, 有效性:{}, 指纹信息:{}", sn, pin, fid, valid, finger);
+				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上新增用户{} 的指纹{} 信息, 已经将用户指纹信息保存到系统中.", sn,
+						pin, fid);
 			} else if (result == 2) {
 				FingerFaceTemplate oldFingerFaceTemplate = fingerFaceTemplateService
 						.findInfoByEmployeeCodeAndTypeAndFid(pin, fid, 1);
@@ -701,81 +713,88 @@ public class ClockServlet extends HttpServlet {
 				oldFingerFaceTemplate.setFid(fid);
 				oldFingerFaceTemplate.setValid(valid);
 				fingerFaceTemplateService.update(oldFingerFaceTemplate);
-				LOGGER.debug("设备{}上用户{} 指纹 {} 发生变动, 有效性: {}, 指纹: {}", sn, pin, fid, valid, finger);
+				
+				LOGGER.info("设备{} 上用户{} 的指纹{} 信息发生变动, 有效性:{}, 指纹信息:{}", sn, pin, fid, valid, finger);
+				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上用户{} 的指纹{} 信息发生变动, 已经将用户最新指纹信息更新到系统中.",
+						sn, pin, fid);
 			}
 
 			// 缓存设备信息, 用于删除脏检查.
 			cacheDeviceItem(sn, TAB_FINGERTMP, key, timestamp + "|" + item);
 			cacheDeviceItem("*", TAB_FINGERTMP, key, item);
 
-			// pushMulticastCommand(sn, CMD_DATA_UPDATE_FINGER, "SYNC_FP" + sn +
-			// "-" + timestamp, item);
+			// pushMulticastCommand(sn, CMD_DATA_UPDATE_FINGER, "SYNC_FP" + sn + "-" + timestamp, item);
 		} catch (Exception e) {
 			e.printStackTrace();
-			LOGGER.debug("设备{}上穿用户基本信息发生异常:{}", sn, e.getMessage());
+			LOGGER.info("设备{} 向系统上传用户{} 的指纹{} 信息时发生异常: {}", sn, pin, fid, e.getMessage());
+			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的指纹{} 信息时发生异常. 异常信息查看请联系系统维护人员.", sn,
+					pin, fid);
 		}
 	}
 
 	protected void handlePhotoItem(final String sn, final Date now, final String item) {
-		try {
-			final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
-			final Map<String, String> info = tokenizeToMap(item, "\t");
-			final String pin = info.get("PIN");
-			final String filename = info.get("FileName");
-			final int size = toIntQuiet(info.get("Size"), 0);
-			final String content = info.get("Content");
-			final String photo = 0 < size ? content.substring(0, size) : content;
+		final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
+		final Map<String, String> info = tokenizeToMap(item, "\t");
+		final String pin = info.get("PIN");
+		final String filename = info.get("FileName");
+		final int size = toIntQuiet(info.get("Size"), 0);
+		final String content = info.get("Content");
+		final String photo = 0 < size ? content.substring(0, size) : content;
 
-			EmployeeDeviceInfo empl1 = new EmployeeDeviceInfo();
-			empl1.setEmployeeCode(pin);
-			empl1.setPic(photo);
-			int result = isChangedEmployeeInfo(2, empl1);
+		try {
+			EmployeeDeviceInfo employeeDevInfo = new EmployeeDeviceInfo();
+			employeeDevInfo.setEmployeeCode(pin);
+			employeeDevInfo.setPic(photo);
+			int result = isChangedEmployeeInfo(2, employeeDevInfo);
+			
 			/**
-			 * result =
-			 * {0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:员工基本信息没有存储(
-			 * 但是表中有员工信息记录)}
+			 * result(0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:
+			 * 员工基本信息没有存储(但是表中有员工信息记录))
 			 */
 			if (result == 1) {
-				empl1.setCreatedDate(new Date());
-				empl1.setDeleted("0");
+				employeeDevInfo.setCreatedDate(new Date());
+				employeeDevInfo.setDeleted("0");
+				employeeDevInfo.setLastModifiedDate(new Date());
+				employeeDeviceInfoService.save(employeeDevInfo);
 
-				empl1.setLastModifiedDate(new Date());
-
-				employeeDeviceInfoService.save(empl1);
-				LOGGER.info("设备{}上用户{} 头像 {} 新增, 内容: {}", sn, pin, filename, photo);
+				LOGGER.info("设备{} 上新增用户{} 的头像信息{}, 内容:{}", sn, pin, filename, photo);
+				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上新增用户{} 的头像信息{}, 已经将用户头像信息保存到系统中.", sn,
+						pin, filename);
 			} else if (result == 2 || result == 3) {
 				EmployeeDeviceInfo employeeDeviceInfo = employeeDeviceInfoService.getInfoByEmployeeCode(pin);
 				employeeDeviceInfo.setPic(photo);
 				employeeDeviceInfo.setLastModifiedDate(new Date());
-
 				employeeDeviceInfoService.update(employeeDeviceInfo);
-
-				LOGGER.info("设备{}上用户{} 头像 {} 发生变动, 内容: {}", sn, pin, filename, photo);
+				
+				LOGGER.info("设备{} 上用户{} 的头像信息发生变动, 变动为{}, 内容:{}", sn, pin, filename, photo);
+				new FileUtil(config.getProperty("log.filePath"), sn)
+						.log("设备{} 上用户{} 的头像信息发生变动, 变动为{}, 已经将用户最新头像信息更新到系统中.", sn, pin, filename);
 			}
 
 			cacheDeviceItem(sn, TAB_USERPIC, pin, timestamp + "|" + item);
 			cacheDeviceItem("*", TAB_USERPIC, pin, item);
 
-			// pushMulticastCommand(sn, CMD_DATA_UPDATE_PHOTO, "SYNC_PT-" + sn +
-			// "-" + timestamp, item);
+			// pushMulticastCommand(sn, CMD_DATA_UPDATE_PHOTO, "SYNC_PT-" + sn + "-" + timestamp, item);
 		} catch (Exception e) {
 			e.printStackTrace();
-			LOGGER.debug("设备{}上穿用户头像信息发生异常:{}", sn, e.getMessage());
+			LOGGER.debug("设备{} 向系统上传用户{} 的头像信息{} 时发生异常: {}", sn, pin, filename, e.getMessage());
+			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的头像信息{} 时发生异常. 异常信息查看请联系系统维护人员.", sn,
+					pin, filename);
 		}
 	}
 
 	protected void handleFaceItem(final String sn, final Date now, final String item) {
-		try {
-			final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
-			final Map<String, String> info = tokenizeToMap(item, "\t");
-			final String pin = info.get("PIN");
-			final String fid = info.get("FID");
-			final int size = toIntQuiet(info.get("SIZE"), 0);
-			final String valid = info.get("VALID");
-			final String faceTmp = info.get("TMP");
-			final String face = 0 < size ? faceTmp.substring(0, size) : faceTmp;
-			final String key = pin + "-" + fid;
+		final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
+		final Map<String, String> info = tokenizeToMap(item, "\t");
+		final String pin = info.get("PIN");
+		final String fid = info.get("FID");
+		final int size = toIntQuiet(info.get("SIZE"), 0);
+		final String valid = info.get("VALID");
+		final String faceTmp = info.get("TMP");
+		final String face = 0 < size ? faceTmp.substring(0, size) : faceTmp;
+		final String key = pin + "-" + fid;
 
+		try {
 			FingerFaceTemplate fft = new FingerFaceTemplate();
 			fft.setEmployeeCode(pin);
 			fft.setFid(fid);
@@ -783,21 +802,20 @@ public class ClockServlet extends HttpServlet {
 			fft.setTmp(face);
 			fft.setType(2);
 			fft.setValid(valid);
-
-			/** 将设备上传的数据和数据库里面做比较 如果没有变动,就不做处理 如果发生变化,就做修改 如果服务器中没有这个数据,就插入数据库 */
-			/**
-			 * result =
-			 * {0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp),4:
-			 * 设备在该次上传的中tmp为空}
-			 */
 			int result = isChangedFingerItmp(fft);
 
+			/**
+			 * result(0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp)
+			 * ,4: 设备在该次上传的中tmp为空)
+			 */
 			if (result == 1 || result == 3) {
 				fft.setDeleted("0");
 				fft.setCreatedDate(new Date());
-
 				fingerFaceTemplateService.save(fft);
-				LOGGER.info("设备{}上用户{} 脸纹 {} 新增, 有效性: {}, 脸纹: {}", sn, pin, fid, valid, face);
+				
+				LOGGER.info("设备{} 上新增用户{} 的脸纹 {} 信息, 有效性:{}, 脸纹信息:{}", sn, pin, fid, valid, face);
+				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上新增用户{} 的脸纹{} 信息, 已经将用户脸纹信息保存到系统中.", sn,
+						pin, fid);
 			} else if (result == 2) {
 				FingerFaceTemplate oldFingerFaceTemplate = fingerFaceTemplateService
 						.findInfoByEmployeeCodeAndTypeAndFid(pin, fid, 2);
@@ -806,28 +824,30 @@ public class ClockServlet extends HttpServlet {
 				oldFingerFaceTemplate.setFid(fid);
 				oldFingerFaceTemplate.setValid(valid);
 				fingerFaceTemplateService.update(oldFingerFaceTemplate);
-
-				LOGGER.info("设备{}上用户{} 脸纹 {} 发生变动, 有效性: {}, 脸纹: {}", sn, pin, fid, valid, face);
+				
+				LOGGER.info("设备{} 上用户{} 的脸纹{} 信息发生变动, 有效性:{}, 脸纹信息:{}", sn, pin, fid, valid, face);
+				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上用户{} 的脸纹{} 信息发生变动, 已经将用户最新脸纹信息更新到系统中.",
+						sn, pin, fid);
 			}
 
 			cacheDeviceItem(sn, TAB_FACE, key, timestamp + "|" + item);
 			cacheDeviceItem("*", TAB_FACE, key, item);
-			// pushMulticastCommand(sn, CMD_DATA_UPDATE_FACE, "SYNC_FE-" + sn +
-			// "-" + timestamp, item);
+			
+			// pushMulticastCommand(sn, CMD_DATA_UPDATE_FACE, "SYNC_FE-" + sn + "-" + timestamp, item);
 		} catch (Exception e) {
 			e.printStackTrace();
-			LOGGER.debug("设备{}上穿用户脸部模板信息发生异常:{}", sn, e.getMessage());
+			LOGGER.info("设备{} 向系统上传用户{} 的脸纹{} 信息时发生异常: {}", sn, pin, fid, e.getMessage());
+			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的脸纹{} 信息时发生异常. 异常信息查看请联系系统维护人员.", sn,
+					pin, fid);
 		}
 	}
 
 	/**
-	 * 
 	 * 说明 : 检查员工的指纹和人脸是否存在或发生变动
 	 * 
 	 * @param fingerFaceTemplate
-	 * @return result =
-	 *         {0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp),4:
-	 *         设备在该次上传的中tmp为空}
+	 * @return result(0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp)
+	 *         ,4: 设备在该次上传的中tmp为空)
 	 * @author zhangshaung
 	 * @dateTime 2017年4月19日 下午5:12:35
 	 */
@@ -864,73 +884,70 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	/**
-	 * 
 	 * 说明 : 检查设备sn中员工key的信息是否变动
 	 * 
 	 * @param type
 	 * @param employeeDeviceInfo
-	 * @return result =
-	 *         {0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:员工基本信息没有存储(
-	 *         但是表中有员工信息记录)}
+	 * @return result(0:没有变动,1:服务器中没有数据,2:信息变动,3:头像信息没有存储(但是表中有员工信息记录),4:
+	 *         员工基本信息没有存储(但是表中有员工信息记录))
 	 * @author zhangshaung
 	 * @dateTime 2017年4月19日 下午5:12:35
 	 */
 	private int isChangedEmployeeInfo(final int type, final EmployeeDeviceInfo employeeDeviceInfo) {
 		int result = 0;
 		try {
+			/** 一切以数据为主, 当设备有新增员工, 不论是否在系统中存在该员工, 都将设备上的员工信息进行保存(设备上的脏数据由脏检查进行处理,包括离职员工)*/
 			// 根据职员代码查询该员工是否已经离职,若离职则不插入职位模板, 修改于 20170531 am 9:51
-			Employee employee = employeeService.findOne(employeeDeviceInfo.getEmployeeCode());
-			if (null != employee) {
-				EmployeeDeviceInfo oldEmployeeDeviceInfo = employeeDeviceInfoService
-						.getInfoByEmployeeCode(employeeDeviceInfo.getEmployeeCode());
-
-				if (null != oldEmployeeDeviceInfo) {
-					int flag = 0;
-					if (type == 1) {
-						if (null == oldEmployeeDeviceInfo.getPri() && null == oldEmployeeDeviceInfo.getPwd()
-								&& null == oldEmployeeDeviceInfo.getCard()) {
-							flag = 3;
-						} else {
-							if (null != employeeDeviceInfo.getPri()) {
-								if (!employeeDeviceInfo.getPri().equals(oldEmployeeDeviceInfo.getPri())) {
-									flag = 1;
-								}
-							}
-							if (null != employeeDeviceInfo.getPwd()) {
-								if (!employeeDeviceInfo.getPwd().equals(oldEmployeeDeviceInfo.getPwd())) {
-									flag = 1;
-								}
-							}
-							if (null != employeeDeviceInfo.getCard()) {
-								if (!employeeDeviceInfo.getCard().equals(oldEmployeeDeviceInfo.getCard())) {
-									flag = 1;
-								}
-							}
-						}
-					} else if (type == 2) {
-						if (null != employeeDeviceInfo.getPic()) {
-							if (!employeeDeviceInfo.getPic().equals(oldEmployeeDeviceInfo.getPic())) {
+			// Employee employee = employeeService.findOne(employeeDeviceInfo.getEmployeeCode());
+			// if (null != employee) {
+			EmployeeDeviceInfo oldEmployeeDeviceInfo = employeeDeviceInfoService
+					.getInfoByEmployeeCode(employeeDeviceInfo.getEmployeeCode());
+			if (null != oldEmployeeDeviceInfo) {
+				int flag = 0;
+				if (type == 1) {
+					if (null == oldEmployeeDeviceInfo.getPri() && null == oldEmployeeDeviceInfo.getPwd()
+							&& null == oldEmployeeDeviceInfo.getCard()) {
+						flag = 3;
+					} else {
+						if (null != employeeDeviceInfo.getPri()) {
+							if (!employeeDeviceInfo.getPri().equals(oldEmployeeDeviceInfo.getPri())) {
 								flag = 1;
 							}
-						} else {
-							flag = 2;
 						}
+						if (null != employeeDeviceInfo.getPwd()) {
+							if (!employeeDeviceInfo.getPwd().equals(oldEmployeeDeviceInfo.getPwd())) {
+								flag = 1;
+							}
+						}
+						if (null != employeeDeviceInfo.getCard()) {
+							if (!employeeDeviceInfo.getCard().equals(oldEmployeeDeviceInfo.getCard())) {
+								flag = 1;
+							}
+						}
+					}
+				} else if (type == 2) {
+					if (null != employeeDeviceInfo.getPic()) {
+						if (!employeeDeviceInfo.getPic().equals(oldEmployeeDeviceInfo.getPic())) {
+							flag = 1;
+						}
+					} else {
+						flag = 2;
+					}
 
-					}
-					if (flag == 0) {// 没有变化
-						result = 0;
-					} else if (flag == 1) {// 出现变化
-						result = 2;
-					} else if (flag == 2) {// 没有存储过照片
-						result = 3;
-					} else if (flag == 3) {// 没有存储过员工基本信息
-						result = 4;
-					}
-				} else {
-					result = 1;
 				}
+				if (flag == 0) {// 没有变化
+					result = 0;
+				} else if (flag == 1) {// 出现变化
+					result = 2;
+				} else if (flag == 2) {// 没有存储过照片
+					result = 3;
+				} else if (flag == 3) {// 没有存储过员工基本信息
+					result = 4;
+				}
+			} else {
+				result = 1;
 			}
-
+			// }
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -948,18 +965,18 @@ public class ClockServlet extends HttpServlet {
 	 * @author zhangshaung
 	 * @dateTime 2017年4月19日 上午11:44:33
 	 */
-	private boolean isChangedItem(final String sn, final String tab, final String key, final String newItem) {
+	/*private boolean isChangedItem(final String sn, final String tab, final String key, final String newItem) {
 		final String item = parseItem(getCachedDeviceItem(sn, tab, key));
 		return null == item || !item.equals(newItem);
-	}
+	}*/
 
-	private String parseItem(final String item) {
+	/*private String parseItem(final String item) {
 		if (null != item) {
 			final int i = item.indexOf('|');
 			return 0 > i ? item : item.substring(i + 1);
 		}
 		return null;
-	}
+	}*/
 
 	protected void handleAdminstratorActionItem(final String sn, final Date now, final String item) {
 		final String[] info = tokenizeToArray(item, "\t");
@@ -988,7 +1005,8 @@ public class ClockServlet extends HttpServlet {
 	 */
 	protected void onAdminstratorAction(final String sn, final String opcode, final String pin, final String time,
 			final String target1, final String target2, final String target3, final String target4) {
-		LOGGER.debug("设备{} 上发生管理员操作, 管理员{} 时间 {} 执行管理操作", sn, pin, time);
+		LOGGER.info("设备{} 上发生管理员操作, 管理员{} 在{} 执行管理操作.", sn, pin, time);
+		new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上发生管理员操作, 管理员{} 在{} 执行管理操作.", sn, pin, time);
 	}
 
 	/**
@@ -1012,9 +1030,60 @@ public class ClockServlet extends HttpServlet {
 			if (0 > index) {
 				if ("0".equals(returnCode)) {
 					LOGGER.info("设备代码: {} 执行命令({})成功, 返回信息为{}", sn, commandId, commandType);
+					Task task = taskService.findTaskById(Long.parseLong(commandId));
+					if (null != task) {
+						String command = task.getCommand();
+						String args = task.getArgs();
+						if (StringUtils.isNotEmpty(command) && StringUtils.isNotEmpty(args)) {
+							if (command.contains("DATA UPDATE USERINFO")) {// 更新用户基本信息
+								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("Name="));
+								String name = args.substring(args.indexOf("Name=") + 5, args.indexOf("Passwd="));
+								String pwd = args.substring(args.indexOf("Passwd=") + 7, args.indexOf("Pri="));
+								String pri = args.substring(args.indexOf("Pri=") + 4);
+								new FileUtil(config.getProperty("log.filePath"), sn).log(
+										"将系统中用户{} 的基本信息更新到设备{} 中成功, 信息如下, 姓名:{}, 密码:{}, 权限:{}", pin.trim(), sn,
+										name.trim(), pwd.trim(), pri.trim().equals("14") ? "超级管理员" : "普通用户");
+							} else if (command.contains("DATA UPDATE USERPIC")) {// 更新用户头像信息
+								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("Size="));
+								new FileUtil(config.getProperty("log.filePath"), sn).log("将系统中用户{} 的头像信息更新到设备{} 中成功.",
+										pin.trim(), sn);
+							} else if (command.contains("DATA UPDATE FINGERTMP")) {// 更新用户指纹信息
+								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
+								String fid = args.substring(args.indexOf("FID=") + 4, args.indexOf("Size="));
+								new FileUtil(config.getProperty("log.filePath"), sn)
+										.log("将系统中用户{} 的指纹{} 信息更新到设备{} 中成功.", pin.trim(), fid.trim(), sn);
+							} else if (command.contains("DATA UPDATE FACE")) {// 更新用户脸纹信息
+								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
+								String fid = args.substring(args.indexOf("FID=") + 4, args.indexOf("Size="));
+								new FileUtil(config.getProperty("log.filePath"), sn)
+										.log("将系统中用户{} 的脸纹{} 信息更新到设备{} 中成功.", pin.trim(), fid.trim(), sn);
+							} else if (command.contains("DATA DELETE USERINFO")) {// 删除用户基本信息
+								String pin = args.substring(args.indexOf("PIN=") + 4);
+								new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的基本信息成功.", sn,
+										pin.trim());
+							} else if (command.contains("DATA DELETE FINGERTMP")) {// 删除用户指纹信息
+								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
+								String fid = args.substring(args.indexOf("FID=") + 4);
+								new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的指纹{} 信息成功.", sn,
+										pin.trim(), fid.trim());
+							} else if (command.contains("DATA DELETE USERPIC")) {// 删除用户头像信息
+								String pin = args.substring(args.indexOf("PIN=") + 4);
+								new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的头像信息成功.", sn,
+										pin.trim());
+							} else if (command.contains("DATA DELETE FACE")) {// 删除用户脸纹信息
+								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
+								String fid = args.substring(args.indexOf("FID=") + 4);
+								new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的脸纹{} 信息成功.", sn,
+										pin.trim(), fid.trim());
+							}
+						}
+					}
+					
 					taskService.recordTaskLog(Long.parseLong(commandId));
 				} else {
-					LOGGER.warn("设备代码: {} 执行命令不成功, 异常代码为:{}, 返回信息为{}", sn, commandId, commandType);
+					LOGGER.warn("设备{} 执行命令不成功, 命令ID为{}, 返回信息为{}", sn, commandId, commandType);
+					new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 执行命令{} 不成功, 请联系系统维护人员查看.", sn,
+							commandId);
 					taskService.updateStateById(Long.parseLong(commandId), 4, null);// 将命令状态设置为4,为命令执行异常
 				}
 				return;
@@ -1071,7 +1140,7 @@ public class ClockServlet extends HttpServlet {
 
 			taskService.save(task);
 		} catch (final Exception e) {
-			LOGGER.error("设备{},向任务表中下达命令{} ,参数{} 报错!", sn, command, args);
+			LOGGER.error("设备{}, 向任务表中下达命令{}, 参数{} 报错!", sn, command, args);
 			LOGGER.error("设备{},向任务表中下达命令{} ,参数{} 报错:{}", sn, command, args, e.getMessage());
 			LOGGER.error("pushCommand error", e);
 		}
@@ -1139,7 +1208,7 @@ public class ClockServlet extends HttpServlet {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			LOGGER.info("设备{},从任务表中取得命令{} ,参数{} 报错!", sn, command, args);
+			LOGGER.info("设备{}, 从任务表中取得命令{}, 参数{} 报错!", sn, command, args);
 			LOGGER.info("设备{},从任务表中取得命令{} ,参数{} 报错{}", sn, command, args, e.getMessage());
 		}
 	}
@@ -1265,7 +1334,7 @@ public class ClockServlet extends HttpServlet {
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
-			LOGGER.info("设备{}获取命令列表失败,报错信息{}", sn, e.getMessage());
+			LOGGER.info("设备{} 获取命令列表失败,报错信息: {}", sn, e.getMessage());
 		}
 		return null;
 	}
@@ -1338,8 +1407,12 @@ public class ClockServlet extends HttpServlet {
 						continue;
 					}
 
-					// checkTimestamp > timestamp
-					if (0 < checkTimestamp.compareTo(timestamp)) {
+					// checkTimestamp > timestamp(标记为错误)
+					// checkTimestamp 是下发命令时候的时间
+					// timestamp 是执行命令时间的当前时间
+					// 所有原先的以下命令不生效, 执行命令的时间肯定会大于下发命令的时间
+					// if (0 < checkTimestamp.compareTo(timestamp)) {
+					if (checkTimestamp.compareTo(timestamp) < 0) {
 						if (TAB_USERPIC.equals(tab)) {
 							handleRemovePhotoItem(sn, pin);
 						} else if (TAB_FACE.equals(tab)) {
@@ -1360,8 +1433,8 @@ public class ClockServlet extends HttpServlet {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-
-			LOGGER.info("设备{},执行删除数据的脏检查,报错{}", sn, e.getMessage());
+			LOGGER.info("设备{},执行删除数据的脏检查,报错信息: {}", sn, e.getMessage());
+			new FileUtil(config.getProperty("log.filePath")).log("设备{},执行删除数据的脏检查,报错信息: {}", sn, e.getMessage());
 		}
 	}
 
@@ -1385,26 +1458,28 @@ public class ClockServlet extends HttpServlet {
 			}
 			if (flag) {
 				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_USER, "PIN=" + pin);
-				LOGGER.info("设备{}删除用户{}", sn, pin);
+				LOGGER.info("给设备{} 下发删除用户{} 的基本信息命令.", sn, pin);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			LOGGER.info("设备{}删除用户{},报错{}", sn, pin, e.getMessage());
+			LOGGER.info("设备{} 执行脏检查删除用户{} 的基本信息时异常, 异常信息: {}", sn, pin, e.getMessage());
 		}
 	}
 
 	protected void handleRemovePhotoItem(final String sn, final String pin) {
 		try {
 			// 先从数据库中查询应该在设备sn上签到的员工头像信息,如果没有查到,就给设备下达删除命令
+			// TODO 由于现在存在一个问题,无法返回数据库类型为CLOB的值,所以这里只判断存在此人就不删除头像
 			List<EmployeeDeviceInfoVO> list = deviceService.findEmployeeBySn(sn);
 			boolean flag = true;
 			if (null != list && list.size() > 0) {
 				for (EmployeeDeviceInfoVO eInfoVO : list) {
 					if (null != eInfoVO.getCode()) {
-						if (eInfoVO.getCode().equals(pin) && null != eInfoVO.getPic()) {
+						// if (eInfoVO.getCode().equals(pin) && null != eInfoVO.getPic()) {
+						if (eInfoVO.getCode().equals(pin)) {
 							flag = false;
 						}
-						
+
 						if (!flag) {
 							break;
 						}
@@ -1413,12 +1488,11 @@ public class ClockServlet extends HttpServlet {
 			}
 			if (flag) {
 				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_PHOTO, "PIN=" + pin);
-				LOGGER.info("设备{}删除头像{}", sn, pin);
+				LOGGER.info("给设备{} 下发删除用户{} 的头像的命令.", sn, pin);
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
-			LOGGER.info("设备{}删除头像{},报错{}", sn, pin, e.getMessage());
+			LOGGER.info("设备{} 执行脏检查删除用户{} 的头像时异常, 异常信息: {}", sn, pin, e.getMessage());
 		}
 	}
 
@@ -1441,11 +1515,11 @@ public class ClockServlet extends HttpServlet {
 			}
 			if (flag) {
 				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_FINGER, "PIN=" + pin + "\t" + "FID=" + fid);
-				LOGGER.info("设备{}删除指纹{}", sn, pin + "-" + fid);
+				LOGGER.info("给设备{} 下发删除用户{} 指纹{} 的信息命令.", sn, pin ,fid);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			LOGGER.info("设备{}删除指纹{},报错{}", sn, pin + "-" + fid, e.getMessage());
+			LOGGER.info("设备{} 执行脏检查删除用户{} 指纹{} 的信息时异常, 异常信息: {}", sn, pin, fid, e.getMessage());
 		}
 	}
 
@@ -1468,11 +1542,11 @@ public class ClockServlet extends HttpServlet {
 			}
 			if (flag) {
 				pushCommand(sn, CommandWrapper.CMD_DATA_DELETE_FACE, "PIN=" + pin + "\t" + "FID=" + fid);
-				LOGGER.info("设备{}删除人脸{}", sn, pin + "-" + fid);
+				LOGGER.info("给设备{} 下发删除用户{} 人脸{} 的信息命令.", sn, pin, fid);
 			}
 		} catch (Exception e) {
-			LOGGER.info("设备删除人脸失败!" + e.getMessage());
 			e.printStackTrace();
+			LOGGER.info("设备{} 执行脏检查删除用户{} 人脸{} 的信息时异常, 异常信息: {}", sn, pin, fid, e.getMessage());
 		}
 	}
 
@@ -1542,11 +1616,11 @@ public class ClockServlet extends HttpServlet {
 				device.setTotalPeople(totalPeople > 0 ? totalPeople : 0L);
 	
 				// 设备已同步人数(这里获取的是设备上的人员数据,不能排查出脏数据,所有需要改动成手动获取的情况)
-				// 修改于2017/06/05 pm 14:00
 				Long syncPeopleCount = null != userCount ? Long.parseLong(userCount) : 0L;
+				LOGGER.info("设备中已经存在的人数是: {}", syncPeopleCount);
 				// 现阶段考勤机中如果存在脏数据不能够清除,所以为了让数据显示正确,需要手动查询一次系统中已经存在的指纹或者脸纹
 				Long syncPeople = deviceService.syncPeopleCountEmployeeBySn(sn);
-				LOGGER.info("考勤机已同步的人数是: {}", syncPeople);
+				LOGGER.info("系统中已同步到的人数是: {}", syncPeople);
 	
 				// 系统中未同步人数(系统中已经存在指纹或者脸纹的人员)
 				long unsyncPeople = totalPeople - syncPeople;
@@ -1581,7 +1655,7 @@ public class ClockServlet extends HttpServlet {
 					}
 				}
 				
-				LOGGER.info("未同步的人数是: {}", unsyncPeople);
+				LOGGER.info("系统中未同步到的人数是: {}", unsyncPeople);
 				device.setUnsyncPeople(unsyncPeople > 0 ? unsyncPeople : 0l);
 				// 考勤点不为空,状态为使用
 				device.setState(2);// 将异常重新连接的设备恢复

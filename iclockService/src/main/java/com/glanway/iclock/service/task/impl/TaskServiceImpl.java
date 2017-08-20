@@ -94,4 +94,9 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	public Task checkCommandHandle(String sn, Long id) {
 		return taskDao.checkCommandHandle(sn, id);
 	}
+
+	@Override
+	public Task findTaskById(Long id) {
+		return taskDao.findTaskById(id);
+	}
 }
