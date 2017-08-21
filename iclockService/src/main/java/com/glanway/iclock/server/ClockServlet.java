@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.glanway.iclock.common.CommandWrapper;
-import com.glanway.iclock.entity.employee.Employee;
 import com.glanway.iclock.entity.employee.EmployeeDeviceInfo;
 import com.glanway.iclock.entity.employee.FingerFaceTemplate;
 import com.glanway.iclock.entity.sign.Device;
@@ -43,7 +42,6 @@ import com.glanway.iclock.entity.task.Task;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceFingerFaceVo;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
 import com.glanway.iclock.service.employee.EmployeeDeviceInfoService;
-import com.glanway.iclock.service.employee.EmployeeService;
 import com.glanway.iclock.service.employee.FingerFaceTemplateService;
 import com.glanway.iclock.service.sign.DeviceService;
 import com.glanway.iclock.service.sign.SignService;
@@ -172,8 +170,8 @@ public class ClockServlet extends HttpServlet {
 	private TaskService taskService;
 
 	/** 员工接口注入 */
-	@Autowired
-	private EmployeeService employeeService;
+	// @Autowired
+	// private EmployeeService employeeService;
 
 	/** 员工的考勤信息接口注入 */
 	@Autowired
@@ -330,12 +328,10 @@ public class ClockServlet extends HttpServlet {
 						handleAdminstratorActionItem(sn, now, line.substring(5));
 					} else {
 						LOGGER.warn("Unknown OPERLOG message: {}", line);
-						new FileUtil(config.getProperty("log.filePath")).log("Unknown OPERLOG message: {}", line);
 					}
 				}
 			} else {
 				LOGGER.warn("Unknown message table={}", table);
-				new FileUtil(config.getProperty("log.filePath")).log("Unknown message table={}", table);
 			}
 			doResponse(resp, "OK");
 		} else if (PUSH_COMMAND_RETURN_URI.equals(requestUri)) {
@@ -590,8 +586,8 @@ public class ClockServlet extends HttpServlet {
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.info("设备{} 向系统上传用户{} 在{} 的打卡记录时发生异常: {}", sn, pin, time, e.getMessage());
-			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 在{} 的打卡记录时发生异常. 异常信息查看请联系系统维护人员.", sn,
-					pin, time);
+			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 在{} 的打卡记录时发生异常. 异常信息为:{}", sn, pin,
+					time, e.getMessage());
 		}
 	}
 
@@ -667,8 +663,8 @@ public class ClockServlet extends HttpServlet {
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.info("设备{} 向系统上传用户{} 的基本信息时发生异常: {}", sn, pin, e.getMessage());
-			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的基本信息时发生异常. 异常信息查看请联系系统维护人员.", sn,
-					pin);
+			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的基本信息时发生异常. 异常信息为:{}", sn, pin,
+					e.getMessage());
 		}
 	}
 
@@ -727,8 +723,8 @@ public class ClockServlet extends HttpServlet {
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.info("设备{} 向系统上传用户{} 的指纹{} 信息时发生异常: {}", sn, pin, fid, e.getMessage());
-			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的指纹{} 信息时发生异常. 异常信息查看请联系系统维护人员.", sn,
-					pin, fid);
+			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的指纹{} 信息时发生异常. 异常信息为:{}", sn, pin, fid,
+					e.getMessage());
 		}
 	}
 
@@ -778,8 +774,8 @@ public class ClockServlet extends HttpServlet {
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.debug("设备{} 向系统上传用户{} 的头像信息{} 时发生异常: {}", sn, pin, filename, e.getMessage());
-			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的头像信息{} 时发生异常. 异常信息查看请联系系统维护人员.", sn,
-					pin, filename);
+			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的头像信息{} 时发生异常. 异常信息为:{}", sn, pin,
+					filename, e.getMessage());
 		}
 	}
 
@@ -837,8 +833,8 @@ public class ClockServlet extends HttpServlet {
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.info("设备{} 向系统上传用户{} 的脸纹{} 信息时发生异常: {}", sn, pin, fid, e.getMessage());
-			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的脸纹{} 信息时发生异常. 异常信息查看请联系系统维护人员.", sn,
-					pin, fid);
+			new FileUtil(config.getProperty("log.filePath")).log("设备{} 向系统上传用户{} 的脸纹{} 信息时发生异常. 异常信息为:{}", sn, pin, fid,
+					e.getMessage());
 		}
 	}
 
@@ -1434,7 +1430,6 @@ public class ClockServlet extends HttpServlet {
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.info("设备{},执行删除数据的脏检查,报错信息: {}", sn, e.getMessage());
-			new FileUtil(config.getProperty("log.filePath")).log("设备{},执行删除数据的脏检查,报错信息: {}", sn, e.getMessage());
 		}
 	}
 

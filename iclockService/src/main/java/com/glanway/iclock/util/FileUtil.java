@@ -101,6 +101,7 @@ public final class FileUtil {
 			writer.write(" ");
 			writer.write(msg);
 			writer.newLine();
+			writer.newLine();
 			writer.flush();
 			writer.close();
 		} catch (Exception e) {
