@@ -1387,7 +1387,7 @@ public class ClockServlet extends HttpServlet {
 	private void doDirtyCheck(final String sn, final String checkTimestamp) {
 		// 服务器中该设备中所有的用户, 在本次要求脏检查时没有上传的, 应该是该设备删除的用户.
 		try {
-			final String[] dirtyCheckTabs = { TAB_USERPIC, TAB_FACE, TAB_FINGERTMP, TAB_USERINFO };
+			final String[] dirtyCheckTabs = { TAB_USERINFO, TAB_USERPIC, TAB_FINGERTMP, TAB_FACE };
 			for (final String tab : dirtyCheckTabs) {
 				final Set<String> keys = getCachedDeviceItemKeys(sn, tab);
 				for (final String key : keys) {
@@ -1409,17 +1409,18 @@ public class ClockServlet extends HttpServlet {
 					// 所有原先的以下命令不生效, 执行命令的时间肯定会大于下发命令的时间
 					// if (0 < checkTimestamp.compareTo(timestamp)) {
 					if (checkTimestamp.compareTo(timestamp) < 0) {
-						if (TAB_USERPIC.equals(tab)) {
+						if (TAB_USERINFO.equals(tab)) {
+							handleRemoveUserItem(sn, pin);
+						} else if (TAB_USERPIC.equals(tab)) {
 							handleRemovePhotoItem(sn, pin);
-						} else if (TAB_FACE.equals(tab)) {
-							handleRemoveFaceItem(sn, pin, fid);
 						} else if (TAB_FINGERTMP.equals(tab)) {
 							handleRemoveFingerItem(sn, pin, fid);
-						} else if (TAB_USERINFO.equals(tab)) {
-							handleRemoveUserItem(sn, pin);
+						} else if (TAB_FACE.equals(tab)) {
+							handleRemoveFaceItem(sn, pin, fid);
 						} else {
 							LOGGER.warn("Unsupported dirty check for table: {}", tab);
 						}
+						
 						// TODO remove
 						evictCachedDeviceItem(sn, tab, key);
 						evictCachedDeviceItem("*", tab, key);
