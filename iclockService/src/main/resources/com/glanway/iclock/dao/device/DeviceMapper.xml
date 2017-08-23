@@ -1224,7 +1224,7 @@
 	<resultMap id="deviceEmployeeFingerFaceMap" type="EmployeeDeviceFingerFaceVo">
 			<result column="CODE" property="code" />
 			<result column="FID" property="fid" />
-			<result column="TMP_SIZE" property="size" />
+			<result column="TMP_SIZE" property="tmpSize" />
 			<result column="VALID" property="valid" />
 			<result column="TMP" property="tmp" />
 	</resultMap>

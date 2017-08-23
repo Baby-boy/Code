@@ -14,6 +14,11 @@ import java.nio.charset.Charset;
  * @dateTime 2017年4月17日 上午11:11:23
  */
 public class CommandWrapper {
+	
+	/** 设备中制表符 */
+	public static final String HT = "\t";
+	/** 换行符 */
+	public static final String LF = "\n";
 
 	/** GB2312 encoding. */
 	public static final Charset GB2312 = Charset.forName("GB2312");

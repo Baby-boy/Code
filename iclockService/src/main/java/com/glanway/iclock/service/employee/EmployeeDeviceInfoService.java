@@ -4,6 +4,8 @@
  */
 package com.glanway.iclock.service.employee;
 
+import java.util.List;
+
 import com.glanway.iclock.entity.employee.EmployeeDeviceInfo;
 import com.glanway.iclock.service.BaseService;
 
@@ -44,4 +46,24 @@ public interface EmployeeDeviceInfoService extends BaseService<EmployeeDeviceInf
 	 * @dateTime 2017年8月10日 下午6:30:10
 	 */
 	public void updateById(EmployeeDeviceInfo employeeInfo);
+
+	/**
+	 * 根据员工code查询设备员工信息.
+	 *
+	 * @param employeeCodes
+	 * @return
+	 * @author FUQIHAO
+	 * @dateTime 2017年8月23日 下午5:46:56
+	 */
+	public List<String> findEmployeeDeviceInfo(String employeeCodes);
+
+	/**
+	 * 根据员工code查询设备员工头像信息.
+	 *
+	 * @param employeeCodes
+	 * @return
+	 * @author FUQIHAO
+	 * @dateTime 2017年8月23日 下午6:12:27
+	 */
+	public List<String> findEmployeeDeviceInfoPhone(String employeeCodes);
 }

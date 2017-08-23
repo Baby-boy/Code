@@ -167,4 +167,18 @@
 		</set>
 		where ID = #{id}
 	</update>
+	
+	<!-- 根据员工Code查询指纹或者脸纹模板 -->
+	<select id="findEmployeeFingerFaceBySn" resultType="EmployeeDeviceFingerFaceVo">
+		SELECT 
+			TE.CODE,TFFT.FID,TFFT.TMP_SIZE,TFFT.VALID,TFFT.TMP
+		FROM T_FINGER_FACE_TEMPLATE TFFT
+		INNER JOIN T_EMPLOYEE TE ON TE.CODE = TFFT.EMPLOYEE_CODE AND TE.JOB_STATE IN (1,2) AND TE.DELETED = 0
+		WHERE TFFT.DELETED = 0 
+		AND TFFT.TYPE = #{type}
+		AND TFFT.EMPLOYEE_CODE IN 
+		<foreach collection="codes" item="code" open="(" close=")" separator=",">
+			#{code}
+		</foreach>
+	</select>
 </mapper>

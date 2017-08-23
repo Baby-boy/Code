@@ -1,20 +1,28 @@
 package com.glanway.iclock.dao.employee;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
 import com.glanway.iclock.dao.BaseDao;
 import com.glanway.iclock.entity.employee.EmployeeDeviceInfo;
+import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
 
-public interface EmployeeDeviceInfoDao extends BaseDao<EmployeeDeviceInfo>{
-    int deleteByPrimaryKey(Long id);
+public interface EmployeeDeviceInfoDao extends BaseDao<EmployeeDeviceInfo> {
+	public int deleteByPrimaryKey(Long id);
 
-    int insert(EmployeeDeviceInfo record);
+	public int insert(EmployeeDeviceInfo record);
 
-    int insertSelective(EmployeeDeviceInfo record);
+	public int insertSelective(EmployeeDeviceInfo record);
 
-    EmployeeDeviceInfo selectByPrimaryKey(Long id);
-    
-    EmployeeDeviceInfo selectByEmployeeCode(String employeeCode);
+	public EmployeeDeviceInfo selectByPrimaryKey(Long id);
 
-    int updateByPrimaryKeySelective(EmployeeDeviceInfo record);
+	public EmployeeDeviceInfo selectByEmployeeCode(String employeeCode);
 
-    int updateByPrimaryKey(EmployeeDeviceInfo record);
+	public int updateByPrimaryKeySelective(EmployeeDeviceInfo record);
+
+	public int updateByPrimaryKey(EmployeeDeviceInfo record);
+
+	/** 根据员工Code查询设备员工信息 */
+	public List<EmployeeDeviceInfoVO> findEmployeeDeviceInfo(@Param("codes") String[] codes);
 }

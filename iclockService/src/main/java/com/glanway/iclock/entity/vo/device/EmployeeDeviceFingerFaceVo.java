@@ -1,7 +1,3 @@
-/**
- * @author zhangshuang
- * 2017年4月21日 下午6:10:46
- */
 package com.glanway.iclock.entity.vo.device;
 
 /**
@@ -12,27 +8,16 @@ package com.glanway.iclock.entity.vo.device;
  * @dateTime 2017年4月21日 下午6:10:46
  */
 public class EmployeeDeviceFingerFaceVo {
-	/**
-	 * 员工代码
-	 */
-	private String code;
-	/**
-	 * 手指编号/脸纹编号
-	 */
-	private String fid;
-	/**
-	 * 图片字节码长度
-	 */
-	private Integer size;
 
-	/**
-	 * 描述模板的有效性及胁迫标志 0.无效模板 1.正常模板 3.胁迫模板
-	 */
-	private String valid;
-	/**
-	 * 模板图片 原始二进制指纹或面部模板的base64编码
-	 */
-	private String tmp;
+	private String code;// 员工代码
+
+	private String fid;// 手指编号/脸纹编号
+
+	private Integer tmpSize;// 图片字节码长度
+
+	private String valid;// 描述模板的有效性及胁迫标志 0.无效模板 1.正常模板 3.胁迫模板
+
+	private String tmp;// 模板图片 原始二进制指纹或面部模板的base64编码
 
 	public String getCode() {
 		return code;
@@ -50,12 +35,12 @@ public class EmployeeDeviceFingerFaceVo {
 		this.fid = fid;
 	}
 
-	public Integer getSize() {
-		return size;
+	public Integer getTmpSize() {
+		return tmpSize;
 	}
 
-	public void setSize(Integer size) {
-		this.size = size;
+	public void setTmpSize(Integer tmpSize) {
+		this.tmpSize = tmpSize;
 	}
 
 	public String getValid() {

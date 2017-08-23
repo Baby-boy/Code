@@ -1,9 +1,6 @@
-/**
- * @author zhangshuang
- * 2017年4月19日 下午7:08:39
- */
 package com.glanway.iclock.service.employee.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.glanway.iclock.common.CommandWrapper;
 import com.glanway.iclock.dao.employee.FingerFaceTemplateDao;
 import com.glanway.iclock.entity.employee.FingerFaceTemplate;
+import com.glanway.iclock.entity.vo.device.EmployeeDeviceFingerFaceVo;
 import com.glanway.iclock.service.BaseServiceImpl;
 import com.glanway.iclock.service.employee.FingerFaceTemplateService;
 
@@ -32,21 +31,8 @@ public class FingerFaceTemplateServiceImpl extends BaseServiceImpl<FingerFaceTem
 	@Autowired
 	private FingerFaceTemplateDao fingerFaceTemplateDao;
 
-	/**
-	 * 
-	 * 说明 : 根据员工代码,查询员工的指纹模板或脸纹模板
-	 * 
-	 * @param employeeCode
-	 *            员工代码
-	 * @param type
-	 *            类型{1:指纹,2:脸纹}
-	 * @return List<FingerFaceTemplate>
-	 * @author zhangshaung
-	 * @dateTime 2017年4月19日 下午7:12:15
-	 */
 	@Override
 	public List<FingerFaceTemplate> selectByEmployeeCodeAndType(String employeeCode, Integer type) {
-		// TODO Auto-generated method stub
 		if (null == employeeCode || null == type) {
 			return null;
 		}
@@ -58,20 +44,8 @@ public class FingerFaceTemplateServiceImpl extends BaseServiceImpl<FingerFaceTem
 		return fingerFaceTemplateDao.selectByEmployeeCodeAndType(params);
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据员工代码(EMPLOYEE_CODE)和指纹标号脸纹标号(FID),查询员工的指纹模板或脸纹模板
-	 * 
-	 * @param employeeCode:员工代码
-	 * @param fid:指纹标号或脸纹标号
-	 * @param type:类型{1:指纹,2:脸纹}
-	 * @return FingerFaceTemplate
-	 * @author zhangshaung
-	 * @dateTime 2017年4月19日 下午7:12:15
-	 */
 	@Override
 	public FingerFaceTemplate findInfoByEmployeeCodeAndTypeAndFid(String employeeCode, String fid, Integer type) {
-		// TODO Auto-generated method stub
 		if (null == employeeCode || null == fid || null == type) {
 			return null;
 		}
@@ -80,5 +54,27 @@ public class FingerFaceTemplateServiceImpl extends BaseServiceImpl<FingerFaceTem
 		params.put("fid", fid);
 		params.put("type", type);
 		return fingerFaceTemplateDao.findInfoByEmployeeCodeAndTypeAndFid(params);
+	}
+
+	@Override
+	public List<String> findEmployeeFingerAndFaceTmpData(String employeeCodes, Integer type) {
+		// 先根据设备sn 查询 需要到当前设备上打卡的所有员工指纹
+		List<EmployeeDeviceFingerFaceVo> employeeVos = fingerFaceTemplateDao
+				.findEmployeeFingerFaceBySn(employeeCodes.split(","), type);
+
+		List<String> list = new ArrayList<String>();
+		// 开始拼接命令参数集
+		for (EmployeeDeviceFingerFaceVo eInfoVO : employeeVos) {
+			final StringBuilder param = new StringBuilder();
+
+			param.append("PIN=").append(eInfoVO.getCode());
+			param.append(CommandWrapper.HT).append("FID=").append(eInfoVO.getFid());
+			param.append(CommandWrapper.HT).append("Size=").append(eInfoVO.getTmpSize());
+			param.append(CommandWrapper.HT).append("Valid=").append(eInfoVO.getValid());
+			param.append(CommandWrapper.HT).append("TMP=").append(eInfoVO.getTmp());
+
+			list.add(param.toString());
+		}
+		return list;
 	}
 }

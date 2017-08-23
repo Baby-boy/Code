@@ -265,7 +265,7 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 			final StringBuilder param = new StringBuilder();
 			final String code = eInfoVO.getCode();
 			final String fid = eInfoVO.getFid();
-			final Integer size = eInfoVO.getSize();
+			final Integer size = eInfoVO.getTmpSize();
 			final String valid = eInfoVO.getValid();
 
 			Map<String, Object> map = new HashMap<String, Object>();
@@ -308,7 +308,7 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 			final StringBuilder param = new StringBuilder();
 			final String code = eInfoVO.getCode();
 			final String fid = eInfoVO.getFid();
-			final Integer size = eInfoVO.getSize();
+			final Integer size = eInfoVO.getTmpSize();
 			final String valid = eInfoVO.getValid();
 
 			Map<String, Object> map = new HashMap<String, Object>();

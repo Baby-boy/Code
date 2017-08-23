@@ -226,17 +226,6 @@
 		#{lastModifiedDate}
 		where ID = #{id}
 	</update>
-
-
-	<!-- <insert id="save" parameterType="EmployeeDeviceInfo"> <selectKey resultType="java.lang.Long" 
-		keyProperty="id" order="BEFORE"> SELECT S_T_EMPLOYEE_DEVICE_INFO.NEXTVAL 
-		FROM DUAL </selectKey> insert into T_EMPLOYEE_DEVICE_INFO (ID, EMPLOYEE_CODE, 
-		PRI, PIC, PWD,CARD, DELETED,BATCH_DATE, CRE_PRO_ID, CREATED_BY, CREATED_DATE, 
-		MOD_PRO_ID, LAST_MODIFIED_BY, LAST_MODIFIED_DATE) values (#{id}, #{employeeCode}, 
-		#{pri}, #{pic}, #{pwd}, #{card}, #{deleted},#{batchDate} #{creProId}, #{createdBy}, 
-		#{createdDate}, #{modProId}, #{lastModifiedBy}, #{lastModifiedDate}) </insert> -->
-
-	
 	<update id="update" parameterType="EmployeeDeviceInfo">
 		update T_EMPLOYEE_DEVICE_INFO
 		<set>
@@ -282,4 +271,16 @@
 		</set>
 		where ID = #{id}
 	</update>
+	
+	<!-- 根据员工Code查询设备员工信息 -->
+	<select id="findEmployeeDeviceInfo" resultType="EmployeeDeviceInfoVO">
+		SELECT 
+			TE.ID,TE.NAME,TE.CODE,TE.SEX,TE.MOBILE,TE.JOB_STATE,TEDI.PWD,TEDI.CARD,TEDI.PRI,TEDI.PIC
+		FROM T_EMPLOYEE_DEVICE_INFO TEDI 
+		INNER JOIN T_EMPLOYEE TE ON TE.CODE = TEDI.EMPLOYEE_CODE AND TE.JOB_STATE IN (1,2) AND TE.DELETED = 0
+		WHERE TEDI.DELETED = 0 AND EMPLOYEE_CODE IN 
+		<foreach collection="codes" item="code" open="(" close=")" separator=",">
+			#{code}
+		</foreach>
+	</select>
 </mapper>
