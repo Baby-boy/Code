@@ -56,17 +56,21 @@ public class CommandController {
 		}
 
 		Device device = deviceService.selectByDeviceSn(sn);
-		device.setSyncState(2);// 同步中
-		deviceService.updateByPrimaryKeySelective(device);
-
-		/***** 同步员工基本信息 ******/
-		syncUserInfo(employeeCodes, sn);
-		/***** 同步员工头像信息 ******/
-		syncUserPhoto(employeeCodes, sn);
-		/***** 同步员工指纹模板信息 ******/
-		syncUserFinger(employeeCodes, sn);
-		/***** 同步员工面部模板信息 ******/
-		syncUserFace(employeeCodes, sn);
+		if (null != device) {
+			device.setSyncState(2);// 同步中
+			deviceService.updateByPrimaryKeySelective(device);
+			
+			/***** 同步员工基本信息 ******/
+			syncUserInfo(employeeCodes, sn);
+			/***** 同步员工头像信息 ******/
+			syncUserPhoto(employeeCodes, sn);
+			/***** 同步员工指纹模板信息 ******/
+			syncUserFinger(employeeCodes, sn);
+			/***** 同步员工面部模板信息 ******/
+			syncUserFace(employeeCodes, sn);
+		} else {
+			jsonResult.setMsg("设备不存在!");
+		}
 
 		jsonResult.setLoginState(3);
 		return jsonResult;

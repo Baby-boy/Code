@@ -154,7 +154,7 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 
 			param.append(HT).append("Pri=").append(StringUtils.hasText(pri) ? pri : "0");
 
-			for (int i = 0; i < name.length() - 1; i++) {
+			for (int i = 0; i < name.length(); i++) {
 				param.append(HT);
 			}
 

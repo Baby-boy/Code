@@ -92,7 +92,7 @@ public class EmployeeDeviceInfoServiceImpl extends BaseServiceImpl<EmployeeDevic
 			}
 			param.append(CommandWrapper.HT).append("Pri=").append(StringUtils.hasText(pri) ? pri : "0");
 
-			for (int i = 0; i < name.length() - 1; i++) {
+			for (int i = 0; i < name.length(); i++) {
 				param.append(CommandWrapper.HT);
 			}
 

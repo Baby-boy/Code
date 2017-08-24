@@ -42,6 +42,7 @@ import com.glanway.iclock.entity.task.Task;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceFingerFaceVo;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
 import com.glanway.iclock.service.employee.EmployeeDeviceInfoService;
+import com.glanway.iclock.service.employee.EmployeeService;
 import com.glanway.iclock.service.employee.FingerFaceTemplateService;
 import com.glanway.iclock.service.sign.DeviceService;
 import com.glanway.iclock.service.sign.SignService;
@@ -1407,8 +1408,8 @@ public class ClockServlet extends HttpServlet {
 					// checkTimestamp 是下发命令时候的时间
 					// timestamp 是执行命令时间的当前时间
 					// 所有原先的以下命令不生效, 执行命令的时间肯定会大于下发命令的时间
-					// if (0 < checkTimestamp.compareTo(timestamp)) {
-					if (checkTimestamp.compareTo(timestamp) < 0) {
+					if (0 < checkTimestamp.compareTo(timestamp)) {
+					// if (checkTimestamp.compareTo(timestamp) < 0) {
 						if (TAB_USERINFO.equals(tab)) {
 							handleRemoveUserItem(sn, pin);
 						} else if (TAB_USERPIC.equals(tab)) {
@@ -1473,7 +1474,11 @@ public class ClockServlet extends HttpServlet {
 					if (null != eInfoVO.getCode()) {
 						// if (eInfoVO.getCode().equals(pin) && null != eInfoVO.getPic()) {
 						if (eInfoVO.getCode().equals(pin)) {
-							flag = false;
+							EmployeeDeviceInfo employeeDeviceInfo = employeeDeviceInfoService
+									.getInfoByEmployeeCode(eInfoVO.getCode());
+							if (null != employeeDeviceInfo && StringUtils.isNotEmpty(employeeDeviceInfo.getPic())) {
+								flag = false;
+							}
 						}
 
 						if (!flag) {
