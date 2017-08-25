@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.glanway.gone.util.StringUtils;
+import com.glanway.iclock.common.CommandWrapper;
 import com.glanway.iclock.dao.employee.EmployeeDeviceInfoDao;
 import com.glanway.iclock.dao.employee.FingerFaceTemplateDao;
 import com.glanway.iclock.dao.sign.DeviceDao;
@@ -154,8 +155,14 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 
 			param.append(HT).append("Pri=").append(StringUtils.hasText(pri) ? pri : "0");
 
-			for (int i = 0; i < name.length(); i++) {
-				param.append(HT);
+			if (StringUtils.hasText(pri) && "14".equals(pri)) {
+				for (int i = 0; i < name.length(); i++) {
+					param.append(CommandWrapper.HT);
+				}
+			} else {
+				for (int i = 0; i < name.length() - 1; i++) {
+					param.append(CommandWrapper.HT);
+				}
 			}
 
 			// 先根据员工编号查询是否有指纹和脸纹 , 如果没有指纹或面部数据,就不同步当前员工

@@ -42,7 +42,6 @@ import com.glanway.iclock.entity.task.Task;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceFingerFaceVo;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
 import com.glanway.iclock.service.employee.EmployeeDeviceInfoService;
-import com.glanway.iclock.service.employee.EmployeeService;
 import com.glanway.iclock.service.employee.FingerFaceTemplateService;
 import com.glanway.iclock.service.sign.DeviceService;
 import com.glanway.iclock.service.sign.SignService;
@@ -1016,99 +1015,113 @@ public class ClockServlet extends HttpServlet {
 	 */
 	protected void handleCommandReturned(final String sn, final String commandId, final String returnCode,
 			final String commandType) {
-		if (StringUtils.isNotEmpty(commandId)) {
-			if (commandId.startsWith("PING-")) {
-				LOGGER.debug("");
-				return;
-			}
+		try{
+			if (StringUtils.isNotEmpty(commandId)) {
+				if (commandId.startsWith("PING-")) {
+					LOGGER.debug("");
+					return;
+				}
 
-			/** 业务指令操作. 如果是业务命令, 不会包含- */
-			final int index = commandId.indexOf("-");
-			if (0 > index) {
-				if ("0".equals(returnCode)) {
-					LOGGER.info("设备代码: {} 执行命令({})成功, 返回信息为{}", sn, commandId, commandType);
-					Task task = taskService.findTaskById(Long.parseLong(commandId));
-					if (null != task) {
-						String command = task.getCommand();
-						String args = task.getArgs();
-						if (StringUtils.isNotEmpty(command) && StringUtils.isNotEmpty(args)) {
-							if (command.contains("DATA UPDATE USERINFO")) {// 更新用户基本信息
-								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("Name="));
-								String name = args.substring(args.indexOf("Name=") + 5, args.indexOf("Passwd="));
-								String pwd = args.substring(args.indexOf("Passwd=") + 7, args.indexOf("Pri="));
-								String pri = args.substring(args.indexOf("Pri=") + 4);
-								new FileUtil(config.getProperty("log.filePath"), sn).log(
-										"将系统中用户{} 的基本信息更新到设备{} 中成功, 信息如下, 姓名:{}, 密码:{}, 权限:{}", pin.trim(), sn,
-										name.trim(), pwd.trim(), pri.trim().equals("14") ? "超级管理员" : "普通用户");
-							} else if (command.contains("DATA UPDATE USERPIC")) {// 更新用户头像信息
-								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("Size="));
-								new FileUtil(config.getProperty("log.filePath"), sn).log("将系统中用户{} 的头像信息更新到设备{} 中成功.",
-										pin.trim(), sn);
-							} else if (command.contains("DATA UPDATE FINGERTMP")) {// 更新用户指纹信息
-								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
-								String fid = args.substring(args.indexOf("FID=") + 4, args.indexOf("Size="));
-								new FileUtil(config.getProperty("log.filePath"), sn)
-										.log("将系统中用户{} 的指纹{} 信息更新到设备{} 中成功.", pin.trim(), fid.trim(), sn);
-							} else if (command.contains("DATA UPDATE FACE")) {// 更新用户脸纹信息
-								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
-								String fid = args.substring(args.indexOf("FID=") + 4, args.indexOf("Size="));
-								new FileUtil(config.getProperty("log.filePath"), sn)
-										.log("将系统中用户{} 的脸纹{} 信息更新到设备{} 中成功.", pin.trim(), fid.trim(), sn);
-							} else if (command.contains("DATA DELETE USERINFO")) {// 删除用户基本信息
-								String pin = args.substring(args.indexOf("PIN=") + 4);
-								new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的基本信息成功.", sn,
-										pin.trim());
-							} else if (command.contains("DATA DELETE FINGERTMP")) {// 删除用户指纹信息
-								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
-								String fid = args.substring(args.indexOf("FID=") + 4);
-								new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的指纹{} 信息成功.", sn,
-										pin.trim(), fid.trim());
-							} else if (command.contains("DATA DELETE USERPIC")) {// 删除用户头像信息
-								String pin = args.substring(args.indexOf("PIN=") + 4);
-								new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的头像信息成功.", sn,
-										pin.trim());
-							} else if (command.contains("DATA DELETE FACE")) {// 删除用户脸纹信息
-								String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
-								String fid = args.substring(args.indexOf("FID=") + 4);
-								new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的脸纹{} 信息成功.", sn,
-										pin.trim(), fid.trim());
+				/** 业务指令操作. 如果是业务命令, 不会包含- */
+				final int index = commandId.indexOf("-");
+				if (0 > index) {
+					if ("0".equals(returnCode)) {
+						LOGGER.info("设备代码: {} 执行命令({})成功, 返回信息为{}", sn, commandId, commandType);
+						Task task = taskService.findTaskById(Long.parseLong(commandId));
+						if (null != task) {
+							String command = task.getCommand();
+							String args = task.getArgs();
+							if (StringUtils.isNotEmpty(command) && StringUtils.isNotEmpty(args)) {
+								if (command.contains("DATA UPDATE USERINFO")) {// 更新用户基本信息
+									String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("Name="));
+									String name = "";
+									String pwd = "";
+									if (args.contains("Passwd=")) {
+										name = args.substring(args.indexOf("Name=") + 5, args.indexOf("Passwd="));
+										pwd = args.substring(args.indexOf("Passwd=") + 7, args.indexOf("Pri="));
+									} else {
+										name = args.substring(args.indexOf("Name=") + 5, args.indexOf("Pri="));
+									}
+									String pri = args.substring(args.indexOf("Pri=") + 4);
+									new FileUtil(config.getProperty("log.filePath"), sn).log(
+											"将系统中用户{} 的基本信息更新到设备{} 中成功, 信息如下, 姓名:{}, 密码:{}, 权限:{}", pin.trim(), sn,
+											name.trim(), StringUtils.isNotEmpty(pwd.trim()) ? pwd.trim() : "无",
+											pri.trim().equals("14") ? "超级管理员" : "普通用户");
+								} else if (command.contains("DATA UPDATE USERPIC")) {// 更新用户头像信息
+									String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("Size="));
+									new FileUtil(config.getProperty("log.filePath"), sn)
+											.log("将系统中用户{} 的头像信息更新到设备{} 中成功.", pin.trim(), sn);
+								} else if (command.contains("DATA UPDATE FINGERTMP")) {// 更新用户指纹信息
+									String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
+									String fid = args.substring(args.indexOf("FID=") + 4, args.indexOf("Size="));
+									new FileUtil(config.getProperty("log.filePath"), sn)
+											.log("将系统中用户{} 的指纹{} 信息更新到设备{} 中成功.", pin.trim(), fid.trim(), sn);
+								} else if (command.contains("DATA UPDATE FACE")) {// 更新用户脸纹信息
+									String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
+									String fid = args.substring(args.indexOf("FID=") + 4, args.indexOf("Size="));
+									new FileUtil(config.getProperty("log.filePath"), sn)
+											.log("将系统中用户{} 的脸纹{} 信息更新到设备{} 中成功.", pin.trim(), fid.trim(), sn);
+								} else if (command.contains("DATA DELETE USERINFO")) {// 删除用户基本信息
+									String pin = args.substring(args.indexOf("PIN=") + 4);
+									new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的基本信息成功.",
+											sn, pin.trim());
+								} else if (command.contains("DATA DELETE FINGERTMP")) {// 删除用户指纹信息
+									String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
+									String fid = args.substring(args.indexOf("FID=") + 4);
+									new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的指纹{} 信息成功.",
+											sn, pin.trim(), fid.trim());
+								} else if (command.contains("DATA DELETE USERPIC")) {// 删除用户头像信息
+									String pin = args.substring(args.indexOf("PIN=") + 4);
+									new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的头像信息成功.",
+											sn, pin.trim());
+								} else if (command.contains("DATA DELETE FACE")) {// 删除用户脸纹信息
+									String pin = args.substring(args.indexOf("PIN=") + 4, args.indexOf("FID="));
+									String fid = args.substring(args.indexOf("FID=") + 4);
+									new FileUtil(config.getProperty("log.filePath"), sn).log("删除设备{} 上用户{} 的脸纹{} 信息成功.",
+											sn, pin.trim(), fid.trim());
+								}
 							}
 						}
-					}
-					
-					taskService.recordTaskLog(Long.parseLong(commandId));
-				} else {
-					LOGGER.warn("设备{} 执行命令不成功, 命令ID为{}, 返回信息为{}", sn, commandId, commandType);
-					new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 执行命令{} 不成功, 请联系系统维护人员查看.", sn,
-							commandId);
-					taskService.updateStateById(Long.parseLong(commandId), 4, null);// 将命令状态设置为4,为命令执行异常
-				}
-				return;
-			}
 
-			/** 非业务型指令操作 */
-			if ("LOG".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_INIT_OVER_ID_PREFIX)) {
-				LOGGER.info("设备{} 从服务器初始化完成", sn);
-				// devices.put(sn, Boolean.TRUE);
-				taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
-			}else if ("RELOAD".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_RELOAD_OPTIONS_ID_PREFIX)) {
-				LOGGER.info("设备{} 从服务器初始化完成", sn);
-				taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
-			} else if ("CHECK".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX)) {
-				final String dirtyCheckTimestamp = commandId
-						.substring(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX.length(), commandId.lastIndexOf("_"));
-				doDirtyCheck(sn, dirtyCheckTimestamp);
-				taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
-			} else if ("DATA".equals(commandType)
-					&& commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX)) {
-				// face 是最后执行的一个命令, 因此这个命令的执行结束后执行脏检查.
-				final String dirtyCheckTimestamp = commandId
-						.substring(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX.length(), commandId.lastIndexOf("_"));
-				doDirtyCheck(sn, dirtyCheckTimestamp);
-				taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
+						taskService.recordTaskLog(Long.parseLong(commandId));
+					} else {
+						LOGGER.warn("设备{} 执行命令不成功, 命令ID为{}, 返回信息为{}", sn, commandId, commandType);
+						new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 执行命令{} 不成功, 请联系系统维护人员查看.", sn,
+								commandId);
+						taskService.updateStateById(Long.parseLong(commandId), 4, null);// 将命令状态设置为4,为命令执行异常
+					}
+					return;
+				}
+
+				/** 非业务型指令操作 */
+				if ("LOG".equals(commandType) && commandId.startsWith(CommandWrapper.DEV_INIT_OVER_ID_PREFIX)) {
+					LOGGER.info("设备{} 从服务器初始化完成", sn);
+					// devices.put(sn, Boolean.TRUE);
+					taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
+				} else if ("RELOAD".equals(commandType)
+						&& commandId.startsWith(CommandWrapper.DEV_RELOAD_OPTIONS_ID_PREFIX)) {
+					LOGGER.info("设备{} 从服务器初始化完成", sn);
+					taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
+				} else if ("CHECK".equals(commandType)
+						&& commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX)) {
+					final String dirtyCheckTimestamp = commandId
+							.substring(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX.length(), commandId.lastIndexOf("_"));
+					doDirtyCheck(sn, dirtyCheckTimestamp);
+					taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
+				} else if ("DATA".equals(commandType)
+						&& commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX)) {
+					// face 是最后执行的一个命令, 因此这个命令的执行结束后执行脏检查.
+					final String dirtyCheckTimestamp = commandId.substring(
+							CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX.length(), commandId.lastIndexOf("_"));
+					doDirtyCheck(sn, dirtyCheckTimestamp);
+					taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
+				}
 			}
+			LOGGER.debug("设备{}执行指令{}[{}], 结果:{}", sn, commandType, commandId, returnCode);
+		} catch (Exception e) {
+			e.printStackTrace();
+			LOGGER.info("设备{} 执行命令后操作失败,报错信息: {}", sn, e.getMessage());
 		}
-		LOGGER.debug("设备{}执行指令{}[{}], 结果:{}", sn, commandType, commandId, returnCode);
 	}
 
 	/*
@@ -1408,8 +1421,8 @@ public class ClockServlet extends HttpServlet {
 					// checkTimestamp 是下发命令时候的时间
 					// timestamp 是执行命令时间的当前时间
 					// 所有原先的以下命令不生效, 执行命令的时间肯定会大于下发命令的时间
-					if (0 < checkTimestamp.compareTo(timestamp)) {
-					// if (checkTimestamp.compareTo(timestamp) < 0) {
+					// if (0 < checkTimestamp.compareTo(timestamp)) {
+					if (checkTimestamp.compareTo(timestamp) < 0) {
 						if (TAB_USERINFO.equals(tab)) {
 							handleRemoveUserItem(sn, pin);
 						} else if (TAB_USERPIC.equals(tab)) {
