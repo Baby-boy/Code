@@ -12,40 +12,21 @@ import com.glanway.iclock.entity.BaseEntity;
  */
 public class EmployeeDeviceInfo extends BaseEntity {
 
-	/**
-	 * @author zhangshuang 2017年4月19日 上午10:35:53
-	 */
 	private static final long serialVersionUID = -4798201159405616444L;
 
-	/**
-	 * 用户考勤号码
-	 */
-	private String employeeCode;
+	private String employeeCode;// 用户考勤号码
 
-	/**
-	 * 考勤权限
-	 */
-	private String pri;
+	private String pri;// 考勤权限
 
-	/**
-	 * 用户照片(头像)
-	 */
-	private String pic;
+	private String pic;// 用户照片(头像)
 
-	/**
-	 * 密码
-	 */
-	private String pwd;
+	private String pwd;// 密码
 
-	/**
-	 * 卡号
-	 */
-	private String card;
+	private String card;// 卡号
 
-	/**
-	 * 是否删除(0.否，1.是)
-	 */
-	private String deleted;
+	private Integer stateType;// 处理标志(0:处理完成, 1:待处理)
+
+	private String deleted;// 是否删除(0.否，1.是)
 
 	public String getEmployeeCode() {
 		return employeeCode;
@@ -79,16 +60,20 @@ public class EmployeeDeviceInfo extends BaseEntity {
 		this.pwd = pwd;
 	}
 
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-
 	public String getCard() {
 		return card;
 	}
 
 	public void setCard(String card) {
 		this.card = card;
+	}
+
+	public Integer getStateType() {
+		return stateType;
+	}
+
+	public void setStateType(Integer stateType) {
+		this.stateType = stateType;
 	}
 
 	public String getDeleted() {

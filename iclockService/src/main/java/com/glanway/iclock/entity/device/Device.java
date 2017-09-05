@@ -1,4 +1,4 @@
-package com.glanway.iclock.entity.sign;
+package com.glanway.iclock.entity.device;
 
 import java.util.Date;
 

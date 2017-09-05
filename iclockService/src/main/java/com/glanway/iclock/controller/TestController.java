@@ -16,7 +16,7 @@ import com.glanway.iclock.common.HttpCode;
 import com.glanway.iclock.common.JsonResult;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceFingerFaceVo;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
-import com.glanway.iclock.service.sign.DeviceService;
+import com.glanway.iclock.service.device.DeviceService;
 
 @Controller
 @RequestMapping("api/test")

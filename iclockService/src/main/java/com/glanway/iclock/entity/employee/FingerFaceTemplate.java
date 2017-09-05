@@ -1,7 +1,3 @@
-/**
- * @author zhangshuang
- * 2017年4月19日 下午5:46:23
- */
 package com.glanway.iclock.entity.employee;
 
 import com.glanway.iclock.entity.BaseEntity;
@@ -15,45 +11,23 @@ import com.glanway.iclock.entity.BaseEntity;
  */
 public class FingerFaceTemplate extends BaseEntity {
 
-	/**
-	 * @author zhangshuang 2017年4月19日 下午5:55:27
-	 */
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * 员工代码
-	 */
-	private String employeeCode;
+	private String employeeCode;// 员工代码
 
-	/**
-	 * 指纹或脸纹标号
-	 */
-	private String fid;
+	private String fid;// 指纹或脸纹标号
 
-	/**
-	 * 指纹或脸纹内容长度
-	 */
-	private Integer tmpSize;
+	private Integer tmpSize;// 指纹或脸纹内容长度
 
-	/**
-	 * 是否有效
-	 */
-	private String valid;
+	private String valid;// 是否有效
 
-	/**
-	 * 指纹或脸纹内容
-	 */
-	private String tmp;
+	private String tmp;// 指纹或脸纹内容
 
-	/**
-	 * 类型(1.指纹,2.脸纹)
-	 */
-	private Integer type;
+	private Integer type;// 类型(1.指纹,2.脸纹)
 
-	/**
-	 * 是否删除 (0:正常 ,1:已删除)
-	 */
-	private String deleted;
+	private Integer stateType;// 处理标志(0:处理完成, 1:待处理)
+
+	private String deleted;// 是否删除 (0:正常 ,1:已删除)
 
 	public String getEmployeeCode() {
 		return employeeCode;
@@ -61,6 +35,14 @@ public class FingerFaceTemplate extends BaseEntity {
 
 	public void setEmployeeCode(String employeeCode) {
 		this.employeeCode = employeeCode;
+	}
+
+	public String getFid() {
+		return fid;
+	}
+
+	public void setFid(String fid) {
+		this.fid = fid;
 	}
 
 	public Integer getTmpSize() {
@@ -95,20 +77,20 @@ public class FingerFaceTemplate extends BaseEntity {
 		this.type = type;
 	}
 
+	public Integer getStateType() {
+		return stateType;
+	}
+
+	public void setStateType(Integer stateType) {
+		this.stateType = stateType;
+	}
+
 	public String getDeleted() {
 		return deleted;
 	}
 
 	public void setDeleted(String deleted) {
 		this.deleted = deleted;
-	}
-
-	public String getFid() {
-		return fid;
-	}
-
-	public void setFid(String fid) {
-		this.fid = fid;
 	}
 
 }

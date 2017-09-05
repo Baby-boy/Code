@@ -9,6 +9,7 @@
 		<result column="VALID" property="valid" />
 		<result column="TMP" property="tmp" />
 		<result column="TYPE" property="type" />
+		<result column="STATE_TYPE" property="stateType" />
 		<result column="DELETED" property="deleted" />
 		<result column="BATCH_DATE" property="batchDate" />
 		<result column="CRE_PRO_ID" property="creProId" />
@@ -17,10 +18,10 @@
 		<result column="MOD_PRO_ID" property="modProId" />
 		<result column="LAST_MODIFIED_BY" property="lastModifiedBy" />
 		<result column="LAST_MODIFIED_DATE" property="lastModifiedDate" />
-		
 	</resultMap>
 	<sql id="Base_Column_List">
-		ID, EMPLOYEE_CODE, FID, TMP_SIZE, VALID, TMP, TYPE,DELETED,BATCH_DATE, CRE_PRO_ID,
+		ID, EMPLOYEE_CODE, FID, TMP_SIZE, VALID, TMP,
+		TYPE,STATE_TYPE,DELETED,BATCH_DATE, CRE_PRO_ID,
 		CREATED_BY,
 		CREATED_DATE, MOD_PRO_ID, LAST_MODIFIED_BY, LAST_MODIFIED_DATE
 	</sql>
@@ -77,43 +78,41 @@
 		ORDER BY CREATED_DATE ASC
 	</select>
 	
-	<select id="find" resultMap="BaseResultMap"
-		parameterType="java.lang.Long">
+	<select id="find" resultMap="BaseResultMap" parameterType="java.lang.Long">
 		SELECT
-		<include refid="Base_Column_List" />
+			<include refid="Base_Column_List" />
 		FROM T_FINGER_FACE_TEMPLATE
-		where DELETED = '0' AND ID = #{id}
+		where DELETED = 0 AND ID = #{id}
 	</select>
 	<select id="selectByEmployeeCodeAndType" resultMap="BaseResultMap"
 		parameterType="map">
 		SELECT
-		<include refid="Base_Column_List" />
+			<include refid="Base_Column_List" />
 		FROM T_FINGER_FACE_TEMPLATE
-		WHERE DELETED = '0' AND EMPLOYEE_CODE = #{employeeCode}
+		WHERE DELETED = 0 AND EMPLOYEE_CODE = #{employeeCode}
 		AND TYPE = #{type}
 	</select>
 	
-	<select id="findInfoByEmployeeCodeAndTypeAndFid" resultMap="BaseResultMap"
-		parameterType="map">
+	<select id="findInfoByEmployeeCodeAndTypeAndFid" resultMap="BaseResultMap" parameterType="map">
 		SELECT
 		<include refid="Base_Column_List" />
 		FROM T_FINGER_FACE_TEMPLATE
-		WHERE DELETED = '0' AND EMPLOYEE_CODE = #{employeeCode}
+		WHERE DELETED = 0 AND EMPLOYEE_CODE = #{employeeCode}
 		AND TYPE = #{type}
 		AND FID = #{fid}
 	</select>
 	
 	<insert id="save" parameterType="FingerFaceTemplate">
-	<selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
+		<selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
 			SELECT S_T_FINGER_FACE_TEMPLATE.NEXTVAL FROM DUAL
 		</selectKey>
 		insert into T_FINGER_FACE_TEMPLATE (ID, EMPLOYEE_CODE, FID,
-		TMP_SIZE, VALID,TMP, TYPE,
+		TMP_SIZE, VALID,TMP, TYPE, STATE_TYPE,
 		DELETED,BATCH_DATE, CRE_PRO_ID, CREATED_BY,
 		CREATED_DATE, MOD_PRO_ID, LAST_MODIFIED_BY,
 		LAST_MODIFIED_DATE)
 		values (#{id}, #{employeeCode}, #{fid},
-		#{tmpSize}, #{valid}, #{tmp}, #{type},
+		#{tmpSize}, #{valid}, #{tmp}, #{type},#{stateType},
 		#{deleted},#{batchDate}, #{creProId}, #{createdBy},
 		#{createdDate}, #{modProId}, #{lastModifiedBy},
 		#{lastModifiedDate})
@@ -139,6 +138,9 @@
 			</if>
 			<if test="type != null">
 				TYPE = #{type},
+			</if>
+			<if test="stateType != null">
+				STATE_TYPE = #{stateType},
 			</if>
 			<if test="deleted != null">
 				DELETED = #{deleted},
@@ -180,5 +182,16 @@
 		<foreach collection="codes" item="code" open="(" close=")" separator=",">
 			#{code}
 		</foreach>
+	</select>
+	
+	<!-- 以下是考勤机相关的新逻辑(系统架构修改后的整改内容) -->
+	<!-- 查询待处理的员工指纹或者脸纹信息 -->
+	<select id="findFingerFaceTemplateByStateType" resultType="FingerFaceTemplate">
+		SELECT 
+			<include refid="Base_Column_List"/>
+		FROM T_FINGER_FACE_TEMPLATE
+		WHERE DELETED = 0
+		AND STATE_TYPE = #{stateType}
+		AND TYPE = #{type}
 	</select>
 </mapper>

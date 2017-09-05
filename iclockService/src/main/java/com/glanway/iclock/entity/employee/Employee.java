@@ -4,7 +4,6 @@ import java.util.Date;
 
 import com.glanway.iclock.entity.BaseEntity;
 
-
 public class Employee extends BaseEntity {
 
 	private static final long serialVersionUID = 6257405540445588272L;
@@ -32,8 +31,6 @@ public class Employee extends BaseEntity {
 	private Long salaryId;// 工资档位ID
 
 	private Long perfId;// 绩效档位ID
-
-	private String deleted;// 是否删除(0:否, 1:是)
 
 	public String getName() {
 		return name;
@@ -147,14 +144,6 @@ public class Employee extends BaseEntity {
 
 	public void setPerfId(Long perfId) {
 		this.perfId = perfId;
-	}
-
-	public String getDeleted() {
-		return deleted;
-	}
-
-	public void setDeleted(String deleted) {
-		this.deleted = deleted;
 	}
 
 }

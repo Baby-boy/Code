@@ -18,29 +18,19 @@ import com.glanway.iclock.entity.vo.device.EmployeeDeviceFingerFaceVo;
  */
 public interface FingerFaceTemplateDao extends BaseDao<FingerFaceTemplate> {
 
-	/**
-	 * 说明 : 根据员工代码,查询员工的指纹模板或脸纹模板
-	 * 
-	 * @param params
-	 *            参数{employeeCode:员工代码,type:类型{1:指纹,2:脸纹}}
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月19日 下午7:12:15
-	 */
-	List<FingerFaceTemplate> selectByEmployeeCodeAndType(Map<String, Object> params);
+	/** 根据员工代码,查询员工的指纹模板或脸纹模板 */
+	public List<FingerFaceTemplate> selectByEmployeeCodeAndType(Map<String, Object> params);
 
-	/**
-	 * 说明 : 根据员工代码(EMPLOYEE_CODE)和指纹标号脸纹标号(FID),查询员工的指纹模板或脸纹模板
-	 * 
-	 * @param params
-	 *            参数{employeeCode:员工代码,type:类型{1:指纹,2:脸纹},fid:指纹标号或脸纹标号}
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月19日 下午7:12:15
-	 */
-	FingerFaceTemplate findInfoByEmployeeCodeAndTypeAndFid(Map<String, Object> params);
+	/** 根据员工代码(EMPLOYEE_CODE)和指纹标号脸纹标号(FID),查询员工的指纹模板或脸纹模板 */
+	public FingerFaceTemplate findInfoByEmployeeCodeAndTypeAndFid(Map<String, Object> params);
 
 	/** 根据员工Code查询员工指纹或者脸纹模板 */
-	List<EmployeeDeviceFingerFaceVo> findEmployeeFingerFaceBySn(@Param("codes") String[] codes,
+	public List<EmployeeDeviceFingerFaceVo> findEmployeeFingerFaceBySn(@Param("codes") String[] codes,
 			@Param("type") Integer type);
+
+	/****************************************************************
+	 * *********************** 以下是考勤机相关的新逻辑 **********************
+	 ****************************************************************/
+	public List<FingerFaceTemplate> findFingerFaceTemplateByStateType(@Param("type") Integer type,
+			@Param("stateType") Integer stateType);
 }

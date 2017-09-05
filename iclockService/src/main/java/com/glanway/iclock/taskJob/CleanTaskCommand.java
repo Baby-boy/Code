@@ -32,7 +32,7 @@ public class CleanTaskCommand {
 	 * @author fuqihao
 	 * @dateTime 2017年8月3日 下午3:00:05
 	 */
-	@Scheduled(cron = "0 0 4 * * ?")
+	// @Scheduled(cron = "0 0 4 * * ?")
 	public void cleanTaskCommand() {
 		// 将状态为2的重启命令移至日志表中
 		List<Task> tasks = taskService.findTaskByCommand(null, null, "C:R-001:REBOOT");

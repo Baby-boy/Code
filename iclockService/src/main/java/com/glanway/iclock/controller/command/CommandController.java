@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.glanway.iclock.common.CommandWrapper;
 import com.glanway.iclock.common.HttpCode;
 import com.glanway.iclock.common.JsonResult;
-import com.glanway.iclock.entity.sign.Device;
+import com.glanway.iclock.entity.device.Device;
 import com.glanway.iclock.entity.task.Task;
+import com.glanway.iclock.service.device.DeviceService;
 import com.glanway.iclock.service.employee.EmployeeDeviceInfoService;
 import com.glanway.iclock.service.employee.FingerFaceTemplateService;
-import com.glanway.iclock.service.sign.DeviceService;
 import com.glanway.iclock.service.task.TaskService;
 
 @Controller

@@ -34,16 +34,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.glanway.iclock.common.CommandWrapper;
+import com.glanway.iclock.entity.device.Device;
 import com.glanway.iclock.entity.employee.EmployeeDeviceInfo;
 import com.glanway.iclock.entity.employee.FingerFaceTemplate;
-import com.glanway.iclock.entity.sign.Device;
 import com.glanway.iclock.entity.sign.Sign;
 import com.glanway.iclock.entity.task.Task;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceFingerFaceVo;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
+import com.glanway.iclock.service.device.DeviceService;
 import com.glanway.iclock.service.employee.EmployeeDeviceInfoService;
 import com.glanway.iclock.service.employee.FingerFaceTemplateService;
-import com.glanway.iclock.service.sign.DeviceService;
 import com.glanway.iclock.service.sign.SignService;
 import com.glanway.iclock.service.task.TaskService;
 import com.glanway.iclock.util.DateUtil;
@@ -617,10 +617,11 @@ public class ClockServlet extends HttpServlet {
 				EmployeeDeviceInfo employeeInfo = employeeDeviceInfoService.getInfoByEmployeeCode(pin);
 				if (null != employeeInfo) {
 					employeeInfo.setPri("14");
-					employeeInfo.setPwd(config.getProperty("deviceManagerPwd"));
+					// employeeInfo.setPwd(config.getProperty("deviceManagerPwd"));
+					employeeInfo.setPwd(password);
 					employeeDeviceInfoService.updateById(employeeInfo);
-					pri = "14";
-					password = config.getProperty("deviceManagerPwd");
+					// pri = "14";
+					// password = config.getProperty("deviceManagerPwd");
 					result = 0;
 				}
 			}
@@ -631,6 +632,7 @@ public class ClockServlet extends HttpServlet {
 			 */
 			if (result == 1) {
 				employeeDevInfo.setCreatedDate(new Date());
+				employeeDevInfo.setStateType(1);
 				employeeDevInfo.setDeleted("0");
 				employeeDeviceInfoService.save(employeeDevInfo);
 				
@@ -644,6 +646,7 @@ public class ClockServlet extends HttpServlet {
 				employeeDeviceInfo.setPri(pri);
 				employeeDeviceInfo.setPwd(password);
 				employeeDeviceInfo.setCard(card);
+				employeeDeviceInfo.setStateType(1);
 				employeeDeviceInfo.setLastModifiedDate(new Date());
 				employeeDeviceInfoService.update(employeeDeviceInfo);
 	
@@ -695,6 +698,7 @@ public class ClockServlet extends HttpServlet {
 			 */
 			if (result == 1 || result == 3) {
 				fft.setDeleted("0");
+				fft.setStateType(1);
 				fft.setCreatedDate(new Date());
 				fingerFaceTemplateService.save(fft);
 				
@@ -708,6 +712,7 @@ public class ClockServlet extends HttpServlet {
 				oldFingerFaceTemplate.setTmp(finger);
 				oldFingerFaceTemplate.setFid(fid);
 				oldFingerFaceTemplate.setValid(valid);
+				oldFingerFaceTemplate.setStateType(1);
 				fingerFaceTemplateService.update(oldFingerFaceTemplate);
 				
 				LOGGER.info("设备{} 上用户{} 的指纹{} 信息发生变动, 有效性:{}, 指纹信息:{}", sn, pin, fid, valid, finger);
@@ -750,6 +755,7 @@ public class ClockServlet extends HttpServlet {
 			if (result == 1) {
 				employeeDevInfo.setCreatedDate(new Date());
 				employeeDevInfo.setDeleted("0");
+				employeeDevInfo.setStateType(2);// 头像信息待处理状态设置为2
 				employeeDevInfo.setLastModifiedDate(new Date());
 				employeeDeviceInfoService.save(employeeDevInfo);
 
@@ -759,6 +765,7 @@ public class ClockServlet extends HttpServlet {
 			} else if (result == 2 || result == 3) {
 				EmployeeDeviceInfo employeeDeviceInfo = employeeDeviceInfoService.getInfoByEmployeeCode(pin);
 				employeeDeviceInfo.setPic(photo);
+				employeeDeviceInfo.setStateType(2);// 头像信息待处理状态设置为2
 				employeeDeviceInfo.setLastModifiedDate(new Date());
 				employeeDeviceInfoService.update(employeeDeviceInfo);
 				
@@ -806,6 +813,7 @@ public class ClockServlet extends HttpServlet {
 			 */
 			if (result == 1 || result == 3) {
 				fft.setDeleted("0");
+				fft.setStateType(1);
 				fft.setCreatedDate(new Date());
 				fingerFaceTemplateService.save(fft);
 				
@@ -819,6 +827,7 @@ public class ClockServlet extends HttpServlet {
 				oldFingerFaceTemplate.setTmp(face);
 				oldFingerFaceTemplate.setFid(fid);
 				oldFingerFaceTemplate.setValid(valid);
+				oldFingerFaceTemplate.setStateType(1);
 				fingerFaceTemplateService.update(oldFingerFaceTemplate);
 				
 				LOGGER.info("设备{} 上用户{} 的脸纹{} 信息发生变动, 有效性:{}, 脸纹信息:{}", sn, pin, fid, valid, face);

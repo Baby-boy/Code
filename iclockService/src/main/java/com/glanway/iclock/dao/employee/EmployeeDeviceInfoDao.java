@@ -13,8 +13,6 @@ public interface EmployeeDeviceInfoDao extends BaseDao<EmployeeDeviceInfo> {
 
 	public int insert(EmployeeDeviceInfo record);
 
-	public int insertSelective(EmployeeDeviceInfo record);
-
 	public EmployeeDeviceInfo selectByPrimaryKey(Long id);
 
 	public EmployeeDeviceInfo selectByEmployeeCode(String employeeCode);
@@ -25,4 +23,9 @@ public interface EmployeeDeviceInfoDao extends BaseDao<EmployeeDeviceInfo> {
 
 	/** 根据员工Code查询设备员工信息 */
 	public List<EmployeeDeviceInfoVO> findEmployeeDeviceInfo(@Param("codes") String[] codes);
+
+	/****************************************************************
+	 * *********************** 以下是考勤机相关的新逻辑 **********************
+	 ****************************************************************/
+	public List<EmployeeDeviceInfo> findEmployeeDeviceInfoByStateType(@Param("stateType") Integer stateType);
 }

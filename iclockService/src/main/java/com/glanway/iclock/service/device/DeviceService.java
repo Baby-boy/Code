@@ -1,8 +1,8 @@
-package com.glanway.iclock.service.sign;
+package com.glanway.iclock.service.device;
 
 import java.util.List;
 
-import com.glanway.iclock.entity.sign.Device;
+import com.glanway.iclock.entity.device.Device;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceFingerFaceVo;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
 import com.glanway.iclock.service.BaseService;

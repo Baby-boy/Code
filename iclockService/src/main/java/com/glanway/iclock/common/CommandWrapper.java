@@ -14,7 +14,7 @@ import java.nio.charset.Charset;
  * @dateTime 2017年4月17日 上午11:11:23
  */
 public class CommandWrapper {
-	
+
 	/** 设备中制表符 */
 	public static final String HT = "\t";
 	/** 换行符 */
@@ -107,7 +107,7 @@ public class CommandWrapper {
 	/**
 	 * 3.2.4-6 重启设备.
 	 */
-	public static final String CMD_REBOOT = "C:%s:REBOOT";
+	public static final String CMD_REBOOT = "C:R-001:REBOOT";
 
 	/**
 	 * 3.2.4-7 数据命令.

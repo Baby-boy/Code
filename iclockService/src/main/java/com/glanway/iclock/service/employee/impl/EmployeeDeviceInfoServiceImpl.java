@@ -13,8 +13,8 @@ import com.glanway.iclock.dao.employee.EmployeeDeviceInfoDao;
 import com.glanway.iclock.entity.employee.EmployeeDeviceInfo;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
 import com.glanway.iclock.service.BaseServiceImpl;
+import com.glanway.iclock.service.device.DeviceService;
 import com.glanway.iclock.service.employee.EmployeeDeviceInfoService;
-import com.glanway.iclock.service.sign.DeviceService;
 
 /**
  * 说明 : 员工的考勤机信息(密码,指纹模板,人脸模板等),service的实现类
@@ -136,5 +136,13 @@ public class EmployeeDeviceInfoServiceImpl extends BaseServiceImpl<EmployeeDevic
 			}
 		}
 		return list;
+	}
+
+	/****************************************************************
+	 * *********************** 以下是考勤机相关的新逻辑 **********************
+	 ****************************************************************/
+	@Override
+	public List<EmployeeDeviceInfo> findEmployeeDeviceInfoByStateType(Integer stateType) {
+		return employeeDeviceInfoDao.findEmployeeDeviceInfoByStateType(stateType);
 	}
 }

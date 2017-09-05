@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.glanway.iclock.dao.device.EmployeeDeviceDao">
+	<sql id="Base_Column_List">
+		ID, EMPLOYEE_NAME, EMPLOYEE_CODE, DEPT_ID, JOB_ID, SN,
+		TSP_ID, TSG_ID,
+		STATE_TYPE,
+		BATCH_DATE, DELETED, CRE_PRO_ID, CREATED_BY,
+		CREATED_DATE, MOD_PRO_ID,
+		LAST_MODIFIED_BY,
+		LAST_MODIFIED_DATE
+	</sql>
+	<insert id="insertSelective" parameterType="EmployeeDevice">
+		<selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
+			SELECT S_T_EMPLOYEE_DEVICE.NEXTVAL FROM DUAL
+		</selectKey>
+		insert into T_EMPLOYEE_DEVICE
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				ID,
+			</if>
+			<if test="employeeName != null">
+				EMPLOYEE_NAME,
+			</if>
+			<if test="employeeCode != null">
+				EMPLOYEE_CODE,
+			</if>
+			<if test="deptId != null">
+				DEPT_ID,
+			</if>
+			<if test="jobId != null">
+				JOB_ID,
+			</if>
+			<if test="sn != null">
+				SN,
+			</if>
+			<if test="tspId != null">
+				TSP_ID,
+			</if>
+			<if test="tsgId != null">
+				TSG_ID,
+			</if>
+			<if test="stateType != null">
+				STATE_TYPE,
+			</if>
+			<if test="batchDate != null">
+				BATCH_DATE,
+			</if>
+			<if test="deleted != null">
+				DELETED,
+			</if>
+			<if test="creProId != null">
+				CRE_PRO_ID,
+			</if>
+			<if test="createdBy != null">
+				CREATED_BY,
+			</if>
+			<if test="createdDate != null">
+				CREATED_DATE,
+			</if>
+			<if test="modProId != null">
+				MOD_PRO_ID,
+			</if>
+			<if test="lastModifiedBy != null">
+				LAST_MODIFIED_BY,
+			</if>
+			<if test="lastModifiedDate != null">
+				LAST_MODIFIED_DATE,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=DECIMAL},
+			</if>
+			<if test="employeeName != null">
+				#{employeeName,jdbcType=VARCHAR},
+			</if>
+			<if test="employeeCode != null">
+				#{employeeCode,jdbcType=VARCHAR},
+			</if>
+			<if test="deptId != null">
+				#{deptId,jdbcType=DECIMAL},
+			</if>
+			<if test="jobId != null">
+				#{jobId,jdbcType=DECIMAL},
+			</if>
+			<if test="sn != null">
+				#{sn,jdbcType=VARCHAR},
+			</if>
+			<if test="tspId != null">
+				#{tspId,jdbcType=DECIMAL},
+			</if>
+			<if test="tsgId != null">
+				#{tsgId,jdbcType=DECIMAL},
+			</if>
+			<if test="stateType != null">
+				#{stateType,jdbcType=DECIMAL},
+			</if>
+			<if test="batchDate != null">
+				#{batchDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="deleted != null">
+				#{deleted,jdbcType=CHAR},
+			</if>
+			<if test="creProId != null">
+				#{creProId,jdbcType=DECIMAL},
+			</if>
+			<if test="createdBy != null">
+				#{createdBy,jdbcType=DECIMAL},
+			</if>
+			<if test="createdDate != null">
+				#{createdDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modProId != null">
+				#{modProId,jdbcType=DECIMAL},
+			</if>
+			<if test="lastModifiedBy != null">
+				#{lastModifiedBy,jdbcType=DECIMAL},
+			</if>
+			<if test="lastModifiedDate != null">
+				#{lastModifiedDate,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateSelective" parameterType="EmployeeDevice">
+		update T_EMPLOYEE_DEVICE
+		<set>
+			<if test="employeeName != null">
+				EMPLOYEE_NAME = #{employeeName,jdbcType=VARCHAR},
+			</if>
+			<if test="employeeCode != null">
+				EMPLOYEE_CODE = #{employeeCode,jdbcType=VARCHAR},
+			</if>
+			<if test="deptId != null">
+				DEPT_ID = #{deptId,jdbcType=DECIMAL},
+			</if>
+			<if test="jobId != null">
+				JOB_ID = #{jobId,jdbcType=DECIMAL},
+			</if>
+			<if test="sn != null">
+				SN = #{sn,jdbcType=VARCHAR},
+			</if>
+			<if test="tspId != null">
+				TSP_ID = #{tspId,jdbcType=DECIMAL},
+			</if>
+			<if test="tsgId != null">
+				TSG_ID = #{tsgId,jdbcType=DECIMAL},
+			</if>
+			<if test="stateType != null">
+				STATE_TYPE = #{stateType,jdbcType=DECIMAL},
+			</if>
+			<if test="batchDate != null">
+				BATCH_DATE = #{batchDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="deleted != null">
+				DELETED = #{deleted,jdbcType=CHAR},
+			</if>
+			<if test="creProId != null">
+				CRE_PRO_ID = #{creProId,jdbcType=DECIMAL},
+			</if>
+			<if test="createdBy != null">
+				CREATED_BY = #{createdBy,jdbcType=DECIMAL},
+			</if>
+			<if test="createdDate != null">
+				CREATED_DATE = #{createdDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modProId != null">
+				MOD_PRO_ID = #{modProId,jdbcType=DECIMAL},
+			</if>
+			<if test="lastModifiedBy != null">
+				LAST_MODIFIED_BY = #{lastModifiedBy,jdbcType=DECIMAL},
+			</if>
+			<if test="lastModifiedDate != null">
+				LAST_MODIFIED_DATE =
+				#{lastModifiedDate,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where ID = #{id,jdbcType=DECIMAL}
+	</update>
+	
+	<!-- 通过员工code查询对应的设备(视图) -->
+	<select id="findEmployeeDeviceByCode" resultType="EmployeeDevice">
+		<!-- SELECT
+			EMPLOYEE_NAME,EMPLOYEE_CODE,DEPT_ID,JOB_ID,SN
+		FROM
+			T_EMPLOYEE_DEVICE
+		WHERE DELETED = 0
+		AND EMPLOYEE_CODE = #{employeeCode}
+		GROUP BY EMPLOYEE_NAME,EMPLOYEE_CODE,DEPT_ID,JOB_ID,SN -->
+		
+		SELECT
+			NAME EMPLOYEE_NAME,CODE EMPLOYEE_CODE,DEPT_ID,JOB_ID,SN
+		FROM V_EMPLOYEE_DEVICE
+		WHERE JOB_STATE IN (1, 2)
+		AND CODE = #{employeeCode}
+		GROUP BY NAME,CODE,DEPT_ID,JOB_ID,SN
+	</select>
+	
+	<!-- 根据状态查询待处理信息 -->
+	<select id="findEmployeeDeviceList" resultType="EmployeeDevice">
+		SELECT
+			EMPLOYEE_NAME,EMPLOYEE_CODE,DEPT_ID,JOB_ID,SN
+		FROM
+			T_EMPLOYEE_DEVICE
+		WHERE DELETED = #{deleted}
+		AND STATE_TYPE = #{stateType}
+		GROUP BY EMPLOYEE_NAME,EMPLOYEE_CODE,DEPT_ID,JOB_ID,SN
+	</select>
+	
+	<!-- 更新所有 -->
+	<update id="updateAllByEmployeeCode">
+		UPDATE T_EMPLOYEE_DEVICE 
+		SET STATE_TYPE = 0, LAST_MODIFIED_DATE = #{lastModifiedDate}
+		WHERE DELETED = #{deleted}
+		AND STATE_TYPE = #{stateType} 
+		AND EMPLOYEE_CODE = #{employeeCode}
+	</update>
+</mapper>

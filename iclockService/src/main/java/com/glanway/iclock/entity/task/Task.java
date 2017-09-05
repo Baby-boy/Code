@@ -1,7 +1,3 @@
-/**
- * @author zhangshuang
- * 2017年4月18日 上午10:15:01
- */
 package com.glanway.iclock.entity.task;
 
 import java.util.Date;
@@ -15,52 +11,41 @@ import com.glanway.iclock.entity.BaseEntity;
  * @version 1.0.0
  * @dateTime 2017年4月18日 上午10:15:01
  */
-public class Task extends BaseEntity{
-	 /**
-	 * @author zhangshuang
-	 * 2017年4月18日 下午12:04:17
-	 */
+public class Task extends BaseEntity {
+
 	private static final long serialVersionUID = -769738822427404731L;
 
-	/*
-	  * 设备序列号
-	  */
-	private String sn;
-	
-	/*
-	 * 状态(1:未处理, 2:处理中, 3:已完成)
-	 */
-	private Integer state;
-	
-	/*
-	 * 命令
-	 */
-	private String command;
-	
-	/*
-	 * 命令参数
-	 */
-	private String 	args;
-	
-	/*
-	 * 开始处理时间
-	 */
-	private Date startHandleTime;
-	
-	/*
-	 * 完成时间
-	 */
-	private Date completeTime;
-	
-	/*
-	 * Batch执行日
-	 */
-	private Date batchDate;
-	
-	/*
-	 * 是否删除 0.否;1.是
-	 */
-	private String deleted;
+	private String operator;// 操作者
+
+	private String handleType;// 处理类型
+
+	private String sn;// 设备序列号
+
+	private Integer state;// 状态(1:未处理, 2:处理中, 3:已完成)
+
+	private String command;// 命令
+
+	private String args;// 命令参数
+
+	private Date startHandleTime;// 开始处理时间
+
+	private Date completeTime;// 完成时间
+
+	public String getOperator() {
+		return operator;
+	}
+
+	public void setOperator(String operator) {
+		this.operator = operator;
+	}
+
+	public String getHandleType() {
+		return handleType;
+	}
+
+	public void setHandleType(String handleType) {
+		this.handleType = handleType;
+	}
 
 	public String getSn() {
 		return sn;
@@ -109,23 +94,5 @@ public class Task extends BaseEntity{
 	public void setCompleteTime(Date completeTime) {
 		this.completeTime = completeTime;
 	}
-
-	public Date getBatchDate() {
-		return batchDate;
-	}
-
-	public void setBatchDate(Date batchDate) {
-		this.batchDate = batchDate;
-	}
-
-	public String getDeleted() {
-		return deleted;
-	}
-
-	public void setDeleted(String deleted) {
-		this.deleted = deleted;
-	}
-	
-	
 
 }

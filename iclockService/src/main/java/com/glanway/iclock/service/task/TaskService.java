@@ -3,6 +3,9 @@ package com.glanway.iclock.service.task;
 import java.util.List;
 import java.util.Map;
 
+import com.glanway.iclock.entity.device.EmployeeDevice;
+import com.glanway.iclock.entity.employee.EmployeeDeviceInfo;
+import com.glanway.iclock.entity.employee.FingerFaceTemplate;
 import com.glanway.iclock.entity.task.Task;
 import com.glanway.iclock.service.BaseService;
 
@@ -109,4 +112,62 @@ public interface TaskService extends BaseService<Task> {
 	 */
 	public Task findTaskById(Long id);
 
+	/****************************************************************
+	 * *********************** 以下是考勤机相关的新逻辑 **********************
+	 ****************************************************************/
+	/**
+	 * 同步员工基本信息.
+	 *
+	 * @param employeeDeviceInfo
+	 * @param employeeDevice
+	 * @author FUQIHAO
+	 * @dateTime 2017年9月3日 下午7:37:15
+	 */
+	public void syncUserInfo(String operator, String handleType, EmployeeDeviceInfo employeeDeviceInfo,
+			EmployeeDevice employeeDevice);
+
+	/**
+	 * 同步员工头像信息.
+	 *
+	 * @param employeeDeviceInfo
+	 * @param employeeDevice
+	 * @author FUQIHAO
+	 * @dateTime 2017年9月3日 下午7:37:32
+	 */
+	public void syncUserPhoto(String operator, String handleType, EmployeeDeviceInfo employeeDeviceInfo,
+			EmployeeDevice employeeDevice);
+
+	/**
+	 * 同步员工指纹信息.
+	 *
+	 * @param fingerFaceTemplate
+	 * @param employeeDevice
+	 * @author FUQIHAO
+	 * @dateTime 2017年9月3日 下午8:05:56
+	 */
+	public void syncUserFinger(String operator, String handleType, FingerFaceTemplate fingerFaceTemplate,
+			EmployeeDevice employeeDevice);
+
+	/**
+	 * 同步员工脸纹信息.
+	 *
+	 * @param fingerFaceTemplate
+	 * @param employeeDevice
+	 * @author FUQIHAO
+	 * @dateTime 2017年9月3日 下午8:09:45
+	 */
+	public void syncUserFace(String operator, String handleType, FingerFaceTemplate fingerFaceTemplate,
+			EmployeeDevice employeeDevice);
+
+	/**
+	 * 保存命令.
+	 *
+	 * @param handleType
+	 * @param sn
+	 * @param command
+	 * @param args
+	 * @author FUQIHAO
+	 * @dateTime 2017年9月3日 下午9:32:11
+	 */
+	public void pushCommand(String operator, String handleType, String sn, String command, String... args);
 }

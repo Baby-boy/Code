@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.glanway.iclock.entity.sign.Device;
-import com.glanway.iclock.service.sign.DeviceService;
+import com.glanway.iclock.entity.device.Device;
+import com.glanway.iclock.service.device.DeviceService;
 
 /**
  * 说明 : 定时器 检查设备连接状态 每次执行定时器时,将超过5分钟没有连接的设备状态修改成异常

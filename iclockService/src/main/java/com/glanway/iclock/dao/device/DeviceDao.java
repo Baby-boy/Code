@@ -1,10 +1,10 @@
-package com.glanway.iclock.dao.sign;
+package com.glanway.iclock.dao.device;
 
 import java.util.List;
 import java.util.Map;
 
 import com.glanway.iclock.dao.BaseDao;
-import com.glanway.iclock.entity.sign.Device;
+import com.glanway.iclock.entity.device.Device;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceFingerFaceVo;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
 

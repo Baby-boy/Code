@@ -17,9 +17,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.glanway.iclock.common.CommandWrapper;
-import com.glanway.iclock.entity.sign.Device;
+import com.glanway.iclock.entity.device.Device;
 import com.glanway.iclock.entity.task.Task;
-import com.glanway.iclock.service.sign.DeviceService;
+import com.glanway.iclock.service.device.DeviceService;
 import com.glanway.iclock.service.task.TaskService;
 import com.glanway.iclock.util.StringUtil;
 
@@ -47,7 +47,7 @@ public class CheckDeviceData {
 	 * @author fuqihao
 	 * @dateTime 2017年7月9日 下午1:36:14
 	 */
-	@Scheduled(cron = "0 0 3 * * ? ")
+	// @Scheduled(cron = "0 0 3 * * ? ")
 	public void checkDeviceData() {
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("state", 2);

@@ -77,4 +77,13 @@ public class FingerFaceTemplateServiceImpl extends BaseServiceImpl<FingerFaceTem
 		}
 		return list;
 	}
+
+	/****************************************************************
+	 * *********************** 以下是考勤机相关的新逻辑 **********************
+	 ****************************************************************/
+	@Override
+	public List<FingerFaceTemplate> findFingerFaceTemplateByStateType(Integer type, Integer stateType) {
+		return fingerFaceTemplateDao.findFingerFaceTemplateByStateType(type, stateType);
+	}
+
 }

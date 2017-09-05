@@ -1,7 +1,7 @@
 package com.glanway.iclock.dao.sign;
 
 import com.glanway.iclock.dao.BaseDao;
-import com.glanway.iclock.entity.sign.Device;
+import com.glanway.iclock.entity.device.Device;
 import com.glanway.iclock.entity.sign.Sign;
 
 /**

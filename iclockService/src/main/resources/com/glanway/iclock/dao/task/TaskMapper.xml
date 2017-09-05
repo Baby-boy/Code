@@ -1,72 +1,75 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.glanway.iclock.dao.task.TaskDao">
-	<resultMap id="BaseTaskMap" type="task" >
-	   <id column="ID" property="id" />
-	   <result column="SN" property="sn"/>
-	   <result column="STATE" property="state"/>
-	   <result column="COMMAND" property="command"/>
-	   <result column="ARGS" property="args"/>
-	   <result column="START_HANDLE_TIME" property="startHandleTime"/>
-	   <result column="COMPLETE_TIME" property="completeTime"/>
-	   <result column="BATCH_DATE" property="batchDate"/>
-	   <result column="DELETED" property="deleted"/>
-	   <result column="CRE_PRO_ID" property="creProId"  />
-	   <result column="CREATED_BY" property="createdBy"  />
-	   <result column="CREATED_DATE" property="createdDate"  />
-	   <result column="MOD_PRO_ID" property="modProId" />
-	   <result column="LAST_MODIFIED_BY" property="lastModifiedBy" />
-	   <result column="LAST_MODIFIED_DATE" property="lastModifiedDate"  />
-	 </resultMap>
-	 <sql id="baseCols">
-	 	ID, SN, STATE, COMMAND, ARGS,
-	 	START_HANDLE_TIME, COMPLETE_TIME, BATCH_DATE,
-	 	DELETED, CRE_PRO_ID, CREATED_BY, CREATED_DATE,
-	 	MOD_PRO_ID, LAST_MODIFIED_BY, LAST_MODIFIED_DATE
-	 </sql>
+	<resultMap id="BaseTaskMap" type="com.glanway.iclock.entity.task.Task">
+		<id column="ID" property="id" jdbcType="DECIMAL" />
+		<result column="OPERATOR" property="operator" jdbcType="VARCHAR" />
+		<result column="HANDLE_TYPE" property="handleType" jdbcType="VARCHAR" />
+		<result column="SN" property="sn" jdbcType="VARCHAR" />
+		<result column="STATE" property="state" jdbcType="DECIMAL" />
+		<result column="START_HANDLE_TIME" property="startHandleTime" jdbcType="TIMESTAMP" />
+		<result column="COMPLETE_TIME" property="completeTime" jdbcType="TIMESTAMP" />
+		<result column="BATCH_DATE" property="batchDate" jdbcType="TIMESTAMP" />
+		<result column="DELETED" property="deleted" jdbcType="CHAR" />
+		<result column="CRE_PRO_ID" property="creProId" jdbcType="DECIMAL" />
+		<result column="CREATED_BY" property="createdBy" jdbcType="DECIMAL" />
+		<result column="CREATED_DATE" property="createdDate" jdbcType="TIMESTAMP" />
+		<result column="MOD_PRO_ID" property="modProId" jdbcType="DECIMAL" />
+		<result column="LAST_MODIFIED_BY" property="lastModifiedBy" jdbcType="DECIMAL" />
+		<result column="LAST_MODIFIED_DATE" property="lastModifiedDate" jdbcType="TIMESTAMP" />
+		<result column="ARGS" property="args" jdbcType="CLOB" />
+		<result column="COMMAND" property="command" jdbcType="CLOB" />
+	</resultMap>
+	<sql id="baseCols">
+		ID, OPERATOR, HANDLE_TYPE, SN, STATE, START_HANDLE_TIME,
+		COMPLETE_TIME,
+		BATCH_DATE,
+		DELETED, CRE_PRO_ID, CREATED_BY,
+		CREATED_DATE, MOD_PRO_ID, LAST_MODIFIED_BY,
+		LAST_MODIFIED_DATE
+	</sql>
+
+	<select id="findTaskById" resultType="Task">
+		SELECT
+			<include refid="baseCols" />
+		FROM T_TASK
+		WHERE ID = #{id}
+	</select>
 	 
-	 <select id="findTaskById" resultType="Task">
-	 	SELECT 
-	 		<include refid="baseCols"/> 
-	 	FROM T_TASK 
-	 	WHERE ID = #{id}
-	 </select>
+	<sql id="baseFilter">
+		T.DELETED = 0
+		<if test="sn != null">
+			AND T.SN = #{sn}
+		</if>
+		<if test="state != null">
+			AND T.STATE = #{state}
+		</if>
+		<if test="command != null">
+			AND T.COMMAND = #{command}
+		</if>
+		<if test="args != null">
+			AND T.ARGS = #{args}
+		</if>
+		<if test="startHandleTime != null">
+			AND T.START_HANDLE_TIME = #{startGandleTime}
+		</if>
+		<if test="completeTime != null">
+			AND T.COMPLETE_TIME = #{completeTime}
+		</if>
+		<if test="batchDate != null">
+			AND T.BATCH_DATE = #{batchDate}
+		</if>
+	</sql>
+	<select id="findMany" parameterType="map" resultMap="BaseTaskMap">
+		SELECT T.*
+		FROM T_TASK T
+		WHERE 
+			<include refid="baseFilter"/>
+		ORDER BY T.CREATED_DATE ASC
+	</select>
 	 
-	 <sql id="baseFilter">
-	 	T.DELETED = 0
-	 	<if test="sn != null">
-	 		AND T.SN = #{sn}
-	 	</if>
-	 	<if test="state != null">
-	 		AND T.STATE = #{state}
-	 	</if>
-	 	<if test="command != null">
-	 		AND T.COMMAND = #{command}
-	 	</if>
-	 	<if test="args != null">
-	 		AND T.ARGS = #{args}
-	 	</if>
-	 	<if test="startHandleTime != null">
-	 		AND T.START_HANDLE_TIME = #{startGandleTime}
-	 	</if>
-	 	<if test="completeTime != null">
-	 		AND T.COMPLETE_TIME = #{completeTime}
-	 	</if>
-	 	<if test="batchDate != null">
-	 		AND T.BATCH_DATE = #{batchDate}
-	 	</if>
-	 </sql>
-	 <select id="findMany" parameterType="map" resultMap="BaseTaskMap">
-	 	SELECT 
-	 		T.*
-	 		FROM T_TASK T
-	 		WHERE 
-	 		<include refid="baseFilter"/>
-	 		ORDER BY T.CREATED_DATE ASC
-	 </select>
-	 
-	 <!-- 根据条件查询第一条数据 -->
-	 <select id="findOneTask" parameterType="map" resultMap="BaseTaskMap">
+	<!-- 根据条件查询第一条数据 -->
+	<select id="findOneTask" parameterType="map" resultMap="BaseTaskMap">
 		SELECT 
 			T.ID,T.SN,T.STATE,T.COMMAND,T.ARGS,T.START_HANDLE_TIME,T.COMPLETE_TIME
 		FROM(
@@ -78,10 +81,10 @@
 				<include refid="baseFilter"/>
 			ORDER BY T.ID ASC
 		) T WHERE ROWNUM = 1 
-	 </select>
+	</select>
 	 
-	 <!-- 校验上条命令执行情况 -->
-	 <select id="checkCommandHandle" resultType="Task">
+	<!-- 校验上条命令执行情况 -->
+	<select id="checkCommandHandle" resultType="Task">
 		SELECT
 			T.ID,T.SN,T.STATE,T.COMMAND,T.ARGS,T.START_HANDLE_TIME,T.COMPLETE_TIME
 		FROM (
@@ -95,123 +98,292 @@
 			AND ID <![CDATA[<]]> #{id}
 			ORDER BY ID ASC
 		) T WHERE ROWNUM = 1 
-	 </select>
-	 
-	 <insert id="save" useGeneratedKeys="true" keyProperty="id">
+	</select>
+	
+	<insert id="insertSelective" parameterType="com.glanway.iclock.entity.task.Task">
 		<selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
 			SELECT S_T_TASK.NEXTVAL FROM DUAL
 		</selectKey>
-	 	INSERT INTO　T_TASK(
-	 		<include refid="baseCols"/>
-	 	) VALUES(
-	 		#{id},#{sn},#{state},#{command},#{args},#{startHandleTime},#{completeTime},
-	 		#{batchDate},#{deleted},#{creProId},#{createdBy},
-	 		#{createdDate},#{modProId},#{lastModifiedBy},#{lastModifiedDate}
-	 	)
-	 </insert>
+		insert into T_TASK
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				ID,
+			</if>
+			<if test="operator != null">
+				OPERATOR,
+			</if>
+			<if test="handleType != null">
+				HANDLE_TYPE,
+			</if>
+			<if test="sn != null">
+				SN,
+			</if>
+			<if test="state != null">
+				STATE,
+			</if>
+			<if test="startHandleTime != null">
+				START_HANDLE_TIME,
+			</if>
+			<if test="completeTime != null">
+				COMPLETE_TIME,
+			</if>
+			<if test="batchDate != null">
+				BATCH_DATE,
+			</if>
+			<if test="deleted != null">
+				DELETED,
+			</if>
+			<if test="creProId != null">
+				CRE_PRO_ID,
+			</if>
+			<if test="createdBy != null">
+				CREATED_BY,
+			</if>
+			<if test="createdDate != null">
+				CREATED_DATE,
+			</if>
+			<if test="modProId != null">
+				MOD_PRO_ID,
+			</if>
+			<if test="lastModifiedBy != null">
+				LAST_MODIFIED_BY,
+			</if>
+			<if test="lastModifiedDate != null">
+				LAST_MODIFIED_DATE,
+			</if>
+			<if test="args != null">
+				ARGS,
+			</if>
+			<if test="command != null">
+				COMMAND,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=DECIMAL},
+			</if>
+			<if test="operator != null">
+				#{operator,jdbcType=VARCHAR},
+			</if>
+			<if test="handleType != null">
+				#{handleType,jdbcType=VARCHAR},
+			</if>
+			<if test="sn != null">
+				#{sn,jdbcType=VARCHAR},
+			</if>
+			<if test="state != null">
+				#{state,jdbcType=DECIMAL},
+			</if>
+			<if test="startHandleTime != null">
+				#{startHandleTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="completeTime != null">
+				#{completeTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="batchDate != null">
+				#{batchDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="deleted != null">
+				#{deleted,jdbcType=CHAR},
+			</if>
+			<if test="creProId != null">
+				#{creProId,jdbcType=DECIMAL},
+			</if>
+			<if test="createdBy != null">
+				#{createdBy,jdbcType=DECIMAL},
+			</if>
+			<if test="createdDate != null">
+				#{createdDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modProId != null">
+				#{modProId,jdbcType=DECIMAL},
+			</if>
+			<if test="lastModifiedBy != null">
+				#{lastModifiedBy,jdbcType=DECIMAL},
+			</if>
+			<if test="lastModifiedDate != null">
+				#{lastModifiedDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="args != null">
+				#{args,jdbcType=CLOB},
+			</if>
+			<if test="command != null">
+				#{command,jdbcType=CLOB},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateSelective" parameterType="com.glanway.iclock.entity.task.Task">
+		update T_TASK
+		<set>
+			<if test="operator != null">
+				OPERATOR = #{operator,jdbcType=VARCHAR},
+			</if>
+			<if test="handleType != null">
+				HANDLE_TYPE = #{handleType,jdbcType=VARCHAR},
+			</if>
+			<if test="sn != null">
+				SN = #{sn,jdbcType=VARCHAR},
+			</if>
+			<if test="state != null">
+				STATE = #{state,jdbcType=DECIMAL},
+			</if>
+			<if test="startHandleTime != null">
+				START_HANDLE_TIME =
+				#{startHandleTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="completeTime != null">
+				COMPLETE_TIME = #{completeTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="batchDate != null">
+				BATCH_DATE = #{batchDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="deleted != null">
+				DELETED = #{deleted,jdbcType=CHAR},
+			</if>
+			<if test="creProId != null">
+				CRE_PRO_ID = #{creProId,jdbcType=DECIMAL},
+			</if>
+			<if test="createdBy != null">
+				CREATED_BY = #{createdBy,jdbcType=DECIMAL},
+			</if>
+			<if test="createdDate != null">
+				CREATED_DATE = #{createdDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modProId != null">
+				MOD_PRO_ID = #{modProId,jdbcType=DECIMAL},
+			</if>
+			<if test="lastModifiedBy != null">
+				LAST_MODIFIED_BY = #{lastModifiedBy,jdbcType=DECIMAL},
+			</if>
+			<if test="lastModifiedDate != null">
+				LAST_MODIFIED_DATE =
+				#{lastModifiedDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="args != null">
+				ARGS = #{args,jdbcType=CLOB},
+			</if>
+			<if test="command != null">
+				COMMAND = #{command,jdbcType=CLOB},
+			</if>
+		</set>
+		where ID = #{id,jdbcType=DECIMAL}
+	</update>
 	 
-	 <update id="update" parameterType="Task">
-	 	UPDATE T_TASK
-	 	<set>
-	 		<if test="sn != null">
-	 			SN = #{sn},
-	 		</if>
-	 		<if test="state != null">
-	 			STATE = #{state},
-	 		</if>
-	 		<if test="command != null">
-	 			COMMAND = #{command},
-	 		</if>
-	 		<if test="args != null">
-	 			ARGS = #{args},
-	 		</if>
-	 		<if test="startHandleTime != null">
-	 			START_HANDLE_TIME = #{startHandleTime},
-	 		</if>
-	 		<if test="completeTime != null">
-	 			COMPLETE_TIME = #{completeTime},
-	 		</if>
-	 		<if test="batchDate != null">
-	 			BATCH_DATE = #{batchDate},
-	 		</if>
-	 		<if test="creProId != null">
-	 			CRE_PRO_ID = #{creProId},
-	 		</if>
-	 		<if test="createdBy != null">
-	 			CREATED_BY = #{createdBy},
-	 		</if>
-	 		<if test="createdDate != null">
-	 			CREATED_DATE = #{createdDate},
-	 		</if>
-	 		<if test="modProId != null">
-	 			MOD_PRO_ID = #{modProId},
-	 		</if>
-	 		<if test="lastModifiedBy != null">
-	 			LAST_MODIFIED_BY = #{lastModifiedBy},
-	 		</if>
-	 		<if test="lastModifiedDate != null">
-	 			LAST_MODIFIED_DATE = #{lastModifiedDate},
-	 		</if>
-	 	</set>
-	 	<where>
-	 		ID = #{id}
-	 	</where>
-	 </update>
+	<insert id="save" useGeneratedKeys="true" keyProperty="id">
+		<selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
+			SELECT S_T_TASK.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO　T_TASK(
+			<include refid="baseCols"/>
+		) VALUES(
+			#{id},#{sn},#{state},#{command},#{args},#{startHandleTime},#{completeTime},
+			#{batchDate},#{deleted},#{creProId},#{createdBy},
+			#{createdDate},#{modProId},#{lastModifiedBy},#{lastModifiedDate}
+		)
+	</insert>
 	 
-	 <update id="delete" parameterType="Task">
-	 	UPDATE T_TASK SET DELETED = 1 WHERE ID = #{id}
-	 </update>
+	<update id="update" parameterType="Task">
+		UPDATE T_TASK
+		<set>
+			<if test="sn != null">
+				SN = #{sn},
+			</if>
+			<if test="state != null">
+				STATE = #{state},
+			</if>
+			<if test="command != null">
+				COMMAND = #{command},
+			</if>
+			<if test="args != null">
+				ARGS = #{args},
+			</if>
+			<if test="startHandleTime != null">
+				START_HANDLE_TIME = #{startHandleTime},
+			</if>
+			<if test="completeTime != null">
+				COMPLETE_TIME = #{completeTime},
+			</if>
+			<if test="batchDate != null">
+				BATCH_DATE = #{batchDate},
+			</if>
+			<if test="creProId != null">
+				CRE_PRO_ID = #{creProId},
+			</if>
+			<if test="createdBy != null">
+				CREATED_BY = #{createdBy},
+			</if>
+			<if test="createdDate != null">
+				CREATED_DATE = #{createdDate},
+			</if>
+			<if test="modProId != null">
+				MOD_PRO_ID = #{modProId},
+			</if>
+			<if test="lastModifiedBy != null">
+				LAST_MODIFIED_BY = #{lastModifiedBy},
+			</if>
+			<if test="lastModifiedDate != null">
+				LAST_MODIFIED_DATE = #{lastModifiedDate},
+			</if>
+		</set>
+		<where>
+			ID = #{id}
+		</where>
+	</update>
+	 
+	<update id="delete" parameterType="Task">
+		UPDATE T_TASK SET DELETED = 1 WHERE ID = #{id}
+	</update>
 	
-	 <!-- 根据设备代码SN,删除(逻辑删除)所有关于当前设备的记录 -->
-	 <update id="chearCommandsBySn" parameterType="java.lang.String">
-	 	UPDATE T_TASK SET DELETED = 1 WHERE SN = #{sn}
-	 </update>
+	<!-- 根据设备代码SN,删除(逻辑删除)所有关于当前设备的记录 -->
+	<update id="chearCommandsBySn" parameterType="java.lang.String">
+		UPDATE T_TASK SET DELETED = 1 WHERE SN = #{sn}
+	</update>
+	
+	<!-- 根据设备代码SN,修改当前命令的状态 -->
+	<update id="updateStateBySn" parameterType="map">
+		UPDATE T_TASK SET STATE = #{state} 
+		WHERE DELETED = 0 AND SN = #{sn}
+		<if test="oldState != null">
+			AND STATE = #{oldState}
+		</if>
+	</update>
 	 
-	 <!-- 根据设备代码SN,修改当前命令的状态 -->
-	 <update id="updateStateBySn" parameterType="map">
-	 	UPDATE T_TASK SET STATE = #{state} 
-	 	WHERE DELETED = 0 AND SN = #{sn}
-	 	<if test="oldState != null">
-	 		AND STATE = #{oldState}
-	 	</if>
-	 </update>
+	<!-- 根据任务ID,修改当前命令的状态 -->
+	<update id="updateStateById" parameterType="map">
+		UPDATE T_TASK 
+		SET STATE = #{state}
+		<if test="state == '3'.toString()">
+		,COMPLETE_TIME = SYSDATE
+		</if> 
+		<if test="state == '2'.toString()">
+		,START_HANDLE_TIME = SYSDATE
+		</if>
+		WHERE DELETED = 0 AND ID = #{id}
+		<if test="oldState != null">
+			AND STATE = #{oldState}
+		</if>
+	</update>
+	
+	<!-- 根据设备序列号查询该设备是否还存在任务 -->
+	<select id="findTaskByDeviceSn" resultType="Task">
+		SELECT 
+		ID, SN, STATE, COMMAND, ARGS
+	FROM T_TASK
+	WHERE SN = #{sn} 
+	AND DELETED = 0
+	AND COMMAND LIKE '%DATA UPDATE%'
+	</select>
+	
+	<insert id="insertIntoSelect">
+		INSERT INTO T_TASK_LOG SELECT * FROM T_TASK WHERE ID = #{id}
+	</insert>
+	
+	<delete id="deleteTaskById">
+		DELETE FROM T_TASK WHERE ID = #{id}
+	</delete>
 	 
-	 <!-- 根据任务ID,修改当前命令的状态 -->
-	 <update id="updateStateById" parameterType="map">
-	 	UPDATE T_TASK 
-	 	SET STATE = #{state}
-	 	<if test="state == '3'.toString()">
-	 	,COMPLETE_TIME = SYSDATE
-	 	</if> 
-	 	<if test="state == '2'.toString()">
-	 	,START_HANDLE_TIME = SYSDATE
-	 	</if>
-	 	WHERE DELETED = 0 AND ID = #{id}
-	 	<if test="oldState != null">
-	 		AND STATE = #{oldState}
-	 	</if>
-	 </update>
-	 
-	 <!-- 根据设备序列号查询该设备是否还存在任务 -->
-	 <select id="findTaskByDeviceSn" resultType="Task">
-	 	SELECT 
-			ID, SN, STATE, COMMAND, ARGS
-		FROM T_TASK
-		WHERE SN = #{sn} 
-		AND DELETED = 0
-		AND COMMAND LIKE '%DATA UPDATE%'
-	 </select>
-	 
-	 <insert id="insertIntoSelect">
-	 	INSERT INTO T_TASK_LOG SELECT * FROM T_TASK WHERE ID = #{id}
-	 </insert>
-	 
-	 <delete id="deleteTaskById">
-	 	DELETE FROM T_TASK WHERE ID = #{id}
-	 </delete>
-	 
-	 <select id="findTaskByCommand" resultType="Task">
-	 	SELECT ID 
+	<select id="findTaskByCommand" resultType="Task">
+		SELECT ID 
 		FROM T_TASK 
 		WHERE DELETED = 0 
 		AND STATE = 2 
@@ -224,5 +396,5 @@
 		<if test="id != null and id != ''">
 			AND ID <![CDATA[<]]> #{id}
 		</if>
-	 </select>
+	</select>
 </mapper>

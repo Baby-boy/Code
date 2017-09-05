@@ -52,4 +52,18 @@ public interface FingerFaceTemplateService extends BaseService<FingerFaceTemplat
 	 */
 	public List<String> findEmployeeFingerAndFaceTmpData(String employeeCodes, Integer type);
 
+	/****************************************************************
+	 * *********************** 以下是考勤机相关的新逻辑 **********************
+	 ****************************************************************/
+	/**
+	 * 同步指纹脸纹模板.
+	 *
+	 * @param i
+	 * @return
+	 * @param i
+	 * @author FUQIHAO
+	 * @dateTime 2017年9月3日 下午7:54:32
+	 */
+	public List<FingerFaceTemplate> findFingerFaceTemplateByStateType(Integer type, Integer stateType);
+
 }

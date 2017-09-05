@@ -1,4 +1,4 @@
-package com.glanway.iclock.service.sign.Impl;
+package com.glanway.iclock.service.device.impl;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,16 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.glanway.gone.util.StringUtils;
 import com.glanway.iclock.common.CommandWrapper;
+import com.glanway.iclock.dao.device.DeviceDao;
 import com.glanway.iclock.dao.employee.EmployeeDeviceInfoDao;
 import com.glanway.iclock.dao.employee.FingerFaceTemplateDao;
-import com.glanway.iclock.dao.sign.DeviceDao;
+import com.glanway.iclock.entity.device.Device;
 import com.glanway.iclock.entity.employee.EmployeeDeviceInfo;
 import com.glanway.iclock.entity.employee.FingerFaceTemplate;
-import com.glanway.iclock.entity.sign.Device;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceFingerFaceVo;
 import com.glanway.iclock.entity.vo.device.EmployeeDeviceInfoVO;
 import com.glanway.iclock.service.BaseServiceImpl;
-import com.glanway.iclock.service.sign.DeviceService;
+import com.glanway.iclock.service.device.DeviceService;
 
 @Service("deviceService")
 @Transactional

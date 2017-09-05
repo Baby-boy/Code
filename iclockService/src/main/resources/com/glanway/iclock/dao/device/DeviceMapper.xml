@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.glanway.iclock.dao.sign.DeviceDao">
+<mapper namespace="com.glanway.iclock.dao.device.DeviceDao">
 	<resultMap id="BaseResultMap" type="Device">
 		<id column="ID" property="id"  />
 		<result column="SIGN_POINT_ID" property="signPointId" />

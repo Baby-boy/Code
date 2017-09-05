@@ -17,6 +17,10 @@ import com.glanway.iclock.entity.task.Task;
  */
 public interface TaskDao extends BaseDao<Task> {
 
+	public int insertSelective(Task record);
+
+	public int updateSelective(Task record);
+
 	/** 根据设备代码SN,删除(逻辑删除)所有关于当前设备的记录 */
 	public int chearCommandsBySn(String sn);
 

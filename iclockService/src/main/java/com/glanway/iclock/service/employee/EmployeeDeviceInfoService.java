@@ -66,4 +66,17 @@ public interface EmployeeDeviceInfoService extends BaseService<EmployeeDeviceInf
 	 * @dateTime 2017年8月23日 下午6:12:27
 	 */
 	public List<String> findEmployeeDeviceInfoPhone(String employeeCodes);
+
+	/****************************************************************
+	 * *********************** 以下是考勤机相关的新逻辑 **********************
+	 ****************************************************************/
+	/**
+	 * 查询待处理的员工基本信息.
+	 *
+	 * @return
+	 * @param stateType
+	 * @author FUQIHAO
+	 * @dateTime 2017年9月3日 下午5:34:50
+	 */
+	public List<EmployeeDeviceInfo> findEmployeeDeviceInfoByStateType(Integer stateType);
 }

@@ -8,6 +8,7 @@
 		<result column="PIC" property="pic" jdbcType="CLOB"/>
 		<result column="PWD" property="pwd" />
 		<result column="CARD" property="card" />
+		<result column="STATE_TYPE" property="stateType" />
 		<result column="DELETED" property="deleted" />
 		<result column="BATCH_DATE" property="batchDate" />
 		<result column="CRE_PRO_ID" property="creProId" />
@@ -16,10 +17,10 @@
 		<result column="MOD_PRO_ID" property="modProId" />
 		<result column="LAST_MODIFIED_BY" property="lastModifiedBy" />
 		<result column="LAST_MODIFIED_DATE" property="lastModifiedDate" />
-
 	</resultMap>
 	<sql id="Base_Column_List">
-		ID, EMPLOYEE_CODE, PRI, PIC, PWD, CARD,DELETED,BATCH_DATE,
+		ID, EMPLOYEE_CODE, PRI, PIC, PWD,
+		CARD,STATE_TYPE,DELETED,BATCH_DATE,
 		CRE_PRO_ID,
 		CREATED_BY,
 		CREATED_DATE, MOD_PRO_ID, LAST_MODIFIED_BY,
@@ -90,6 +91,9 @@
 			<if test="card != null">
 				CARD,
 			</if>
+			<if test="stateType != null">
+				STATE_TYPE,
+			</if>
 			<if test="deleted != null">
 				DELETED,
 			</if>
@@ -133,6 +137,9 @@
 			</if>
 			<if test="card != null">
 				#{card},
+			</if>
+			<if test="stateType != null">
+				#{stateType},
 			</if>
 			<if test="deleted != null">
 				#{deleted},
@@ -178,6 +185,9 @@
 			<if test="card != null">
 				CARD = #{card},
 			</if>
+			<if test="stateType != null">
+				STATE_TYPE = #{stateType},
+			</if>
 			<if test="deleted != null">
 				DELETED = #{deleted},
 			</if>
@@ -214,6 +224,7 @@
 		PIC = #{pic},
 		PWD = #{pwd},
 		CARD = #{card},
+		STATE_TYPE = #{stateType},
 		DELETED = #{deleted},
 		BATCH_DATE = #{batchDate},
 		CRE_PRO_ID = #{creProId},
@@ -243,6 +254,9 @@
 			</if>
 			<if test="card != null">
 				CARD = #{card},
+			</if>
+			<if test="stateType != null">
+				STATE_TYPE = #{stateType},
 			</if>
 			<if test="deleted != null">
 				DELETED = #{deleted},
@@ -282,5 +296,15 @@
 		<foreach collection="codes" item="code" open="(" close=")" separator=",">
 			#{code}
 		</foreach>
+	</select>
+	
+	<!-- 以下是考勤机相关的新逻辑(系统架构修改后的整改内容) -->
+	<!-- 查询待处理的员工基本信息 -->
+	<select id="findEmployeeDeviceInfoByStateType" resultType="EmployeeDeviceInfo">
+		SELECT 
+			<include refid="Base_Column_List"/>
+		FROM T_EMPLOYEE_DEVICE_INFO 
+		WHERE DELETED = 0 
+		AND STATE_TYPE = #{stateType}
 	</select>
 </mapper>
