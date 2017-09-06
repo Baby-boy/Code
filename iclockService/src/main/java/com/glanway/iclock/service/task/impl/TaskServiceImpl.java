@@ -22,6 +22,8 @@ import com.glanway.iclock.service.device.DeviceService;
 import com.glanway.iclock.service.task.TaskService;
 import com.glanway.iclock.util.StringUtil;
 
+import oracle.net.aso.d;
+
 /**
  * 说明 : 任务实现类
  * 
@@ -117,9 +119,11 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 			EmployeeDevice employeeDevice) {
 		// 插入命令前将对应的设备状态更新为同步中
 		Device device = deviceService.selectByDeviceSn(employeeDevice.getSn());
-		device.setSyncState(2);
-		device.setLastModifiedDate(new Date());
-		deviceService.updateByPrimaryKeySelective(device);
+		if (null != device) {
+			device.setSyncState(2);
+			device.setLastModifiedDate(new Date());
+			deviceService.updateByPrimaryKeySelective(device);
+		}
 
 		// 创建任务
 		Task task = new Task();
@@ -158,9 +162,11 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 			EmployeeDevice employeeDevice) {
 		// 插入命令前将对应的设备状态更新为同步中
 		Device device = deviceService.selectByDeviceSn(employeeDevice.getSn());
-		device.setSyncState(2);
-		device.setLastModifiedDate(new Date());
-		deviceService.updateByPrimaryKeySelective(device);
+		if (null != device) {
+			device.setSyncState(2);
+			device.setLastModifiedDate(new Date());
+			deviceService.updateByPrimaryKeySelective(device);
+		}
 
 		// 创建任务
 		Task task = new Task();
@@ -187,9 +193,11 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 			EmployeeDevice employeeDevice) {
 		// 插入命令前将对应的设备状态更新为同步中
 		Device device = deviceService.selectByDeviceSn(employeeDevice.getSn());
-		device.setSyncState(2);
-		device.setLastModifiedDate(new Date());
-		deviceService.updateByPrimaryKeySelective(device);
+		if (null != device) {
+			device.setSyncState(2);
+			device.setLastModifiedDate(new Date());
+			deviceService.updateByPrimaryKeySelective(device);
+		}
 
 		// 创建任务
 		Task task = new Task();
@@ -218,9 +226,11 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 			EmployeeDevice employeeDevice) {
 		// 插入命令前将对应的设备状态更新为同步中
 		Device device = deviceService.selectByDeviceSn(employeeDevice.getSn());
-		device.setSyncState(2);
-		device.setLastModifiedDate(new Date());
-		deviceService.updateByPrimaryKeySelective(device);
+		if (null != device) {
+			device.setSyncState(2);
+			device.setLastModifiedDate(new Date());
+			deviceService.updateByPrimaryKeySelective(device);
+		}
 
 		// 创建任务
 		Task task = new Task();
@@ -262,9 +272,11 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	public void pushCommand(String operator, String handleType, String sn, String command, String... args) {
 		// 插入命令前将对应的设备状态更新为同步中
 		Device device = deviceService.selectByDeviceSn(sn);
-		device.setSyncState(2);
-		device.setLastModifiedDate(new Date());
-		deviceService.updateByPrimaryKeySelective(device);
+		if (null != device) {
+			device.setSyncState(2);
+			device.setLastModifiedDate(new Date());
+			deviceService.updateByPrimaryKeySelective(device);
+		}
 
 		// 创建任务
 		Task task = new Task();
