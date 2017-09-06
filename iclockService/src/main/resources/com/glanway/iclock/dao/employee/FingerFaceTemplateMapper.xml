@@ -95,9 +95,10 @@
 	
 	<select id="findInfoByEmployeeCodeAndTypeAndFid" resultMap="BaseResultMap" parameterType="map">
 		SELECT
-		<include refid="Base_Column_List" />
+			<include refid="Base_Column_List" />
 		FROM T_FINGER_FACE_TEMPLATE
-		WHERE DELETED = 0 AND EMPLOYEE_CODE = #{employeeCode}
+		WHERE DELETED = 0 
+		AND EMPLOYEE_CODE = #{employeeCode}
 		AND TYPE = #{type}
 		AND FID = #{fid}
 	</select>

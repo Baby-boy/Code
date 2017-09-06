@@ -12,11 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.glanway.gone.util.StringUtils;
 import com.glanway.iclock.common.CommandWrapper;
 import com.glanway.iclock.dao.task.TaskDao;
+import com.glanway.iclock.entity.device.Device;
 import com.glanway.iclock.entity.device.EmployeeDevice;
 import com.glanway.iclock.entity.employee.EmployeeDeviceInfo;
 import com.glanway.iclock.entity.employee.FingerFaceTemplate;
 import com.glanway.iclock.entity.task.Task;
 import com.glanway.iclock.service.BaseServiceImpl;
+import com.glanway.iclock.service.device.DeviceService;
 import com.glanway.iclock.service.task.TaskService;
 import com.glanway.iclock.util.StringUtil;
 
@@ -33,6 +35,9 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 
 	@Autowired
 	private TaskDao taskDao;
+
+	@Autowired
+	private DeviceService deviceService;
 
 	@Override
 	public int chearCommandsBySn(String sn) {
@@ -110,6 +115,12 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	@Override
 	public void syncUserInfo(String operator, String handleType, EmployeeDeviceInfo employeeDeviceInfo,
 			EmployeeDevice employeeDevice) {
+		// 插入命令前将对应的设备状态更新为同步中
+		Device device = deviceService.selectByDeviceSn(employeeDevice.getSn());
+		device.setSyncState(2);
+		device.setLastModifiedDate(new Date());
+		deviceService.updateByPrimaryKeySelective(device);
+
 		// 创建任务
 		Task task = new Task();
 		task.setOperator(operator);
@@ -145,6 +156,12 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	@Override
 	public void syncUserPhoto(String operator, String handleType, EmployeeDeviceInfo employeeDeviceInfo,
 			EmployeeDevice employeeDevice) {
+		// 插入命令前将对应的设备状态更新为同步中
+		Device device = deviceService.selectByDeviceSn(employeeDevice.getSn());
+		device.setSyncState(2);
+		device.setLastModifiedDate(new Date());
+		deviceService.updateByPrimaryKeySelective(device);
+
 		// 创建任务
 		Task task = new Task();
 		task.setOperator(operator);
@@ -168,6 +185,12 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	@Override
 	public void syncUserFinger(String operator, String handleType, FingerFaceTemplate fingerFaceTemplate,
 			EmployeeDevice employeeDevice) {
+		// 插入命令前将对应的设备状态更新为同步中
+		Device device = deviceService.selectByDeviceSn(employeeDevice.getSn());
+		device.setSyncState(2);
+		device.setLastModifiedDate(new Date());
+		deviceService.updateByPrimaryKeySelective(device);
+
 		// 创建任务
 		Task task = new Task();
 		task.setOperator(operator);
@@ -193,6 +216,12 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	@Override
 	public void syncUserFace(String operator, String handleType, FingerFaceTemplate fingerFaceTemplate,
 			EmployeeDevice employeeDevice) {
+		// 插入命令前将对应的设备状态更新为同步中
+		Device device = deviceService.selectByDeviceSn(employeeDevice.getSn());
+		device.setSyncState(2);
+		device.setLastModifiedDate(new Date());
+		deviceService.updateByPrimaryKeySelective(device);
+
 		// 创建任务
 		Task task = new Task();
 		task.setOperator(operator);
@@ -231,6 +260,12 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 
 	@Override
 	public void pushCommand(String operator, String handleType, String sn, String command, String... args) {
+		// 插入命令前将对应的设备状态更新为同步中
+		Device device = deviceService.selectByDeviceSn(sn);
+		device.setSyncState(2);
+		device.setLastModifiedDate(new Date());
+		deviceService.updateByPrimaryKeySelective(device);
+
 		// 创建任务
 		Task task = new Task();
 		task.setOperator(operator);

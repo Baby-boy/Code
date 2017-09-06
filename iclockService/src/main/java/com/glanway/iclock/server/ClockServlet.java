@@ -549,9 +549,9 @@ public class ClockServlet extends HttpServlet {
 
 		try {
 			final String type = verifyMap.get(verify);
-			LOGGER.info("系统存储从考勤机返回的考勤时间: {}", time);
+			// LOGGER.info("系统存储从考勤机返回的考勤时间: {}", time);
 			final Date newDate = DateUtil.str2Date(time, DateUtil.DATETIME_FORMAT_YYYY_MM_DD_HHMMSS);
-			LOGGER.info("系统格式化后的考勤机考勤时间: {}", newDate);
+			// LOGGER.info("系统格式化后的考勤机考勤时间: {}", newDate);
 	
 			// 获取newDate的前一分钟值 , 为了过滤同一人短时间重复打卡的
 			final Date beforeDate = TimeUtil.getTimeBeforeMinute(newDate, -1);
@@ -659,10 +659,8 @@ public class ClockServlet extends HttpServlet {
 			}
 	
 			// 缓存设备信息, 用于删除脏检查.
-			cacheDeviceItem(sn, TAB_USERINFO, pin, timestamp + "|" + item);
-			cacheDeviceItem("*", TAB_USERINFO, pin, item);
-	
-			// pushMulticastCommand(sn, CMD_DATA_UPDATE_USER, "SYNC_UR-" + sn + "-" + timestamp, item);
+			// cacheDeviceItem(sn, TAB_USERINFO, pin, timestamp + "|" + item);
+			// cacheDeviceItem("*", TAB_USERINFO, pin, item);
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.info("设备{} 向系统上传用户{} 的基本信息时发生异常: {}", sn, pin, e.getMessage());
@@ -693,16 +691,16 @@ public class ClockServlet extends HttpServlet {
 			int result = isChangedFingerItmp(fft);
 
 			/**
-			 * result(0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp)
-			 * ,4: 设备在该次上传的中tmp为空)
+			 * result(0:没有变动,1:服务器中没有数据,2:信息变动,4: 设备在该次上传的中tmp为空)
 			 */
-			if (result == 1 || result == 3) {
+			if (result == 1) {
 				fft.setDeleted("0");
 				fft.setStateType(1);
 				fft.setCreatedDate(new Date());
+				fft.setLastModifiedDate(fft.getCreatedDate());
 				fingerFaceTemplateService.save(fft);
 				
-				LOGGER.info("设备{} 上新增用户{} 的指纹{} 信息, 有效性:{}, 指纹信息:{}", sn, pin, fid, valid, finger);
+				LOGGER.info("设备{} 上新增用户{} 的指纹{} 信息, 有效性:{}", sn, pin, fid, valid);
 				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上新增用户{} 的指纹{} 信息, 已经将用户指纹信息保存到系统中.", sn,
 						pin, fid);
 			} else if (result == 2) {
@@ -710,21 +708,20 @@ public class ClockServlet extends HttpServlet {
 						.findInfoByEmployeeCodeAndTypeAndFid(pin, fid, 1);
 				oldFingerFaceTemplate.setTmpSize(size);
 				oldFingerFaceTemplate.setTmp(finger);
-				oldFingerFaceTemplate.setFid(fid);
+				// oldFingerFaceTemplate.setFid(fid);
 				oldFingerFaceTemplate.setValid(valid);
 				oldFingerFaceTemplate.setStateType(1);
+				oldFingerFaceTemplate.setLastModifiedDate(new Date());
 				fingerFaceTemplateService.update(oldFingerFaceTemplate);
 				
-				LOGGER.info("设备{} 上用户{} 的指纹{} 信息发生变动, 有效性:{}, 指纹信息:{}", sn, pin, fid, valid, finger);
+				LOGGER.info("设备{} 上用户{} 的指纹{} 信息发生变动, 有效性:{}", sn, pin, fid, valid);
 				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上用户{} 的指纹{} 信息发生变动, 已经将用户最新指纹信息更新到系统中.",
 						sn, pin, fid);
 			}
 
 			// 缓存设备信息, 用于删除脏检查.
-			cacheDeviceItem(sn, TAB_FINGERTMP, key, timestamp + "|" + item);
-			cacheDeviceItem("*", TAB_FINGERTMP, key, item);
-
-			// pushMulticastCommand(sn, CMD_DATA_UPDATE_FINGER, "SYNC_FP" + sn + "-" + timestamp, item);
+			// cacheDeviceItem(sn, TAB_FINGERTMP, key, timestamp + "|" + item);
+			// cacheDeviceItem("*", TAB_FINGERTMP, key, item);
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.info("设备{} 向系统上传用户{} 的指纹{} 信息时发生异常: {}", sn, pin, fid, e.getMessage());
@@ -774,10 +771,8 @@ public class ClockServlet extends HttpServlet {
 						.log("设备{} 上用户{} 的头像信息发生变动, 变动为{}, 已经将用户最新头像信息更新到系统中.", sn, pin, filename);
 			}
 
-			cacheDeviceItem(sn, TAB_USERPIC, pin, timestamp + "|" + item);
-			cacheDeviceItem("*", TAB_USERPIC, pin, item);
-
-			// pushMulticastCommand(sn, CMD_DATA_UPDATE_PHOTO, "SYNC_PT-" + sn + "-" + timestamp, item);
+			// cacheDeviceItem(sn, TAB_USERPIC, pin, timestamp + "|" + item);
+			// cacheDeviceItem("*", TAB_USERPIC, pin, item);
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.debug("设备{} 向系统上传用户{} 的头像信息{} 时发生异常: {}", sn, pin, filename, e.getMessage());
@@ -808,16 +803,16 @@ public class ClockServlet extends HttpServlet {
 			int result = isChangedFingerItmp(fft);
 
 			/**
-			 * result(0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp)
-			 * ,4: 设备在该次上传的中tmp为空)
+			 * result(0:没有变动,1:服务器中没有数据,2:信息变动,4: 设备在该次上传的中tmp为空)
 			 */
-			if (result == 1 || result == 3) {
+			if (result == 1) {
 				fft.setDeleted("0");
 				fft.setStateType(1);
 				fft.setCreatedDate(new Date());
+				fft.setLastModifiedDate(fft.getCreatedDate());
 				fingerFaceTemplateService.save(fft);
 				
-				LOGGER.info("设备{} 上新增用户{} 的脸纹 {} 信息, 有效性:{}, 脸纹信息:{}", sn, pin, fid, valid, face);
+				LOGGER.info("设备{} 上新增用户{} 的脸纹 {} 信息, 有效性:{}", sn, pin, fid, valid);
 				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上新增用户{} 的脸纹{} 信息, 已经将用户脸纹信息保存到系统中.", sn,
 						pin, fid);
 			} else if (result == 2) {
@@ -825,20 +820,19 @@ public class ClockServlet extends HttpServlet {
 						.findInfoByEmployeeCodeAndTypeAndFid(pin, fid, 2);
 				oldFingerFaceTemplate.setTmpSize(size);
 				oldFingerFaceTemplate.setTmp(face);
-				oldFingerFaceTemplate.setFid(fid);
+				// oldFingerFaceTemplate.setFid(fid);
 				oldFingerFaceTemplate.setValid(valid);
 				oldFingerFaceTemplate.setStateType(1);
+				oldFingerFaceTemplate.setLastModifiedDate(new Date());
 				fingerFaceTemplateService.update(oldFingerFaceTemplate);
 				
-				LOGGER.info("设备{} 上用户{} 的脸纹{} 信息发生变动, 有效性:{}, 脸纹信息:{}", sn, pin, fid, valid, face);
+				LOGGER.info("设备{} 上用户{} 的脸纹{} 信息发生变动, 有效性:{}", sn, pin, fid, valid);
 				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上用户{} 的脸纹{} 信息发生变动, 已经将用户最新脸纹信息更新到系统中.",
 						sn, pin, fid);
 			}
 
-			cacheDeviceItem(sn, TAB_FACE, key, timestamp + "|" + item);
-			cacheDeviceItem("*", TAB_FACE, key, item);
-			
-			// pushMulticastCommand(sn, CMD_DATA_UPDATE_FACE, "SYNC_FE-" + sn + "-" + timestamp, item);
+			// cacheDeviceItem(sn, TAB_FACE, key, timestamp + "|" + item);
+			// cacheDeviceItem("*", TAB_FACE, key, item);
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.info("设备{} 向系统上传用户{} 的脸纹{} 信息时发生异常: {}", sn, pin, fid, e.getMessage());
@@ -851,8 +845,7 @@ public class ClockServlet extends HttpServlet {
 	 * 说明 : 检查员工的指纹和人脸是否存在或发生变动
 	 * 
 	 * @param fingerFaceTemplate
-	 * @return result(0:没有变动,1:服务器中没有数据,2:信息变动,3:没有当前指纹标识或人脸标识(fid)的指纹或人脸信息(tmp)
-	 *         ,4: 设备在该次上传的中tmp为空)
+	 * @return result(0:没有变动,1:服务器中没有数据,2:信息变动,4: 设备在该次上传的中tmp为空)
 	 * @author zhangshaung
 	 * @dateTime 2017年4月19日 下午5:12:35
 	 */
@@ -860,24 +853,17 @@ public class ClockServlet extends HttpServlet {
 		int result = 0;
 		try {
 			// 先查询当前员工是否有指纹信息
-			List<FingerFaceTemplate> fingerList = fingerFaceTemplateService
-					.selectByEmployeeCodeAndType(fingerFaceTemplate.getEmployeeCode(), fingerFaceTemplate.getType());
-			if (fingerList.size() > 0) {
-				FingerFaceTemplate finger = fingerFaceTemplateService.findInfoByEmployeeCodeAndTypeAndFid(
-						fingerFaceTemplate.getEmployeeCode(), fingerFaceTemplate.getFid(),
-						fingerFaceTemplate.getType());
-				if (null != finger) {
-					if (null != fingerFaceTemplate.getTmp()) {
-						if (!fingerFaceTemplate.getTmp().equals(finger.getTmp())) {
-							result = 2;
-						} else {
-							result = 0;
-						}
+			FingerFaceTemplate finger = fingerFaceTemplateService.findInfoByEmployeeCodeAndTypeAndFid(
+					fingerFaceTemplate.getEmployeeCode(), fingerFaceTemplate.getFid(), fingerFaceTemplate.getType());
+			if (null != finger) {
+				if (StringUtils.isNotEmpty(fingerFaceTemplate.getTmp())) {
+					if (!fingerFaceTemplate.getTmp().equals(finger.getTmp())) {
+						result = 2;
 					} else {
-						result = 4;
+						result = 0;
 					}
 				} else {
-					result = 3;
+					result = 4;// 本次未上传指纹信息
 				}
 			} else {
 				result = 1;
@@ -1115,14 +1101,14 @@ public class ClockServlet extends HttpServlet {
 						&& commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX)) {
 					final String dirtyCheckTimestamp = commandId
 							.substring(CommandWrapper.DEV_DIRTY_CHECK_ID_PREFIX.length(), commandId.lastIndexOf("_"));
-					doDirtyCheck(sn, dirtyCheckTimestamp);
+					// doDirtyCheck(sn, dirtyCheckTimestamp);
 					taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
 				} else if ("DATA".equals(commandType)
 						&& commandId.startsWith(CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX)) {
 					// face 是最后执行的一个命令, 因此这个命令的执行结束后执行脏检查.
 					final String dirtyCheckTimestamp = commandId.substring(
 							CommandWrapper.DEV_DIRTY_CHECK_FACE_ID_PREFIX.length(), commandId.lastIndexOf("_"));
-					doDirtyCheck(sn, dirtyCheckTimestamp);
+					// doDirtyCheck(sn, dirtyCheckTimestamp);
 					taskService.recordTaskLog(Long.parseLong(commandId.substring(commandId.lastIndexOf("_") + 1)));
 				}
 			}
@@ -1358,7 +1344,7 @@ public class ClockServlet extends HttpServlet {
 		return null;
 	}
 
-	private void cacheDeviceItem(final String sn, final String tab, final String key, final String value) {
+	protected void cacheDeviceItem(final String sn, final String tab, final String key, final String value) {
 		final String cacheKey = sn + "-" + tab;
 		Map<String, String> cache = deviceDataCache.get(cacheKey);
 
@@ -1407,7 +1393,7 @@ public class ClockServlet extends HttpServlet {
 	 * @param sn(设备序列号)
 	 * @param checkTimestamp(脏检查要求上传所有数据的时间)
 	 */
-	private void doDirtyCheck(final String sn, final String checkTimestamp) {
+	protected void doDirtyCheck(final String sn, final String checkTimestamp) {
 		// 服务器中该设备中所有的用户, 在本次要求脏检查时没有上传的, 应该是该设备删除的用户.
 		try {
 			final String[] dirtyCheckTabs = { TAB_USERINFO, TAB_USERPIC, TAB_FINGERTMP, TAB_FACE };

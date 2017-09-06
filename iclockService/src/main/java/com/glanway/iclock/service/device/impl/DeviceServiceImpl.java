@@ -50,41 +50,16 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 		deviceDao.insertSelective(device);
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据设备代码sn 查询设备信息
-	 * 
-	 * @param sn
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月20日 下午2:03:25
-	 */
 	@Override
 	public Device selectByDeviceSn(String sn) {
 		return deviceDao.selectByDeviceSn(sn);
 	}
 
-	/**
-	 * 
-	 * 说明 : 取数据库中根据已连通设备最后一次连接时间超过5分钟的设备
-	 * 
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月20日 下午6:05:16
-	 */
 	@Override
 	public List<Device> findLastConnectionTimeExcendFiveMinute() {
 		return deviceDao.findLastConnectionTimeExcendFiveMinute();
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据ID修改设备的状态
-	 * 
-	 * @param id
-	 * @author zhangshaung
-	 * @dateTime 2017年4月20日 下午6:18:12
-	 */
 	@Override
 	public void updateStateById(Long id) {
 		Map<String, Object> param = new HashMap<String, Object>();
@@ -96,15 +71,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据设备代码SN修改设备的状态
-	 * 
-	 * @param sn
-	 * @param state
-	 * @author zhangshaung
-	 * @dateTime 2017年4月20日 下午6:19:11
-	 */
 	@Override
 	public void updateStateBySn(String sn, Integer state) {
 		Map<String, Object> param = new HashMap<String, Object>();
@@ -116,15 +82,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 		deviceDao.updateStateBySn(param);
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据设备sn 得到更新或新增员工基本信息的命令数据
-	 * 
-	 * @param sn
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月21日 下午4:14:57
-	 */
 	@Override
 	public List<String> updateUserInfoDataBySn(String sn) {
 		// 先根据设备sn 查询 需要到当前设备上打卡的所有员工信息
@@ -174,15 +131,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 		return list;
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据设备sn 查询 需要到当前设备上打卡的所有员工信息
-	 * 
-	 * @param sn
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月21日 下午4:11:17
-	 */
 	@Override
 	public List<EmployeeDeviceInfoVO> findEmployeeBySn(String sn) {
 		if (null == sn && "".equals(sn)) {
@@ -195,15 +143,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 		return deviceEmployeeVos;
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据设备sn 得到更新或新增员工头像的命令数据
-	 * 
-	 * @param sn
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月21日 下午4:14:57
-	 */
 	@Override
 	public List<String> updateUserPhoneDataBySn(String sn) {
 		// 先根据设备sn 查询 需要到当前设备上打卡的所有员工信息
@@ -230,17 +169,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 		return list;
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据设备sn 查询 需要到当前设备上打卡的所有员工指纹模板或脸部模板
-	 * 
-	 * @param sn(设备代码)
-	 * @param type(类型
-	 *            1.指纹模板 2.面部模板)
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月21日 下午7:20:14
-	 */
 	@Override
 	public List<EmployeeDeviceFingerFaceVo> findEmployeeFingerFaceBySn(String sn, Integer type) {
 		if (null == sn || null == type) {
@@ -253,15 +181,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 		return list;
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据设备sn 得到更新或新增员工指纹模板的命令数据
-	 * 
-	 * @param sn
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月21日 下午7:30:45
-	 */
 	@Override
 	public List<String> updateUserFingerTmpDataBySn(String sn) {
 		// 先根据设备sn 查询 需要到当前设备上打卡的所有员工指纹
@@ -295,15 +214,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 		return list;
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据设备sn 得到更新或新增员工面部模板的命令数据
-	 * 
-	 * @param sn
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月21日 下午7:30:45
-	 */
 	@Override
 	public List<String> updateUserFaceTmpDataBySn(String sn) {
 		// 先根据设备sn 查询 需要到当前设备上打卡的所有员工面部模板
@@ -339,42 +249,15 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 		return list;
 	}
 
-	/***
-	 * 
-	 * 说明 : 修改
-	 * 
-	 * @param record
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月24日 下午6:12:19
-	 */
 	@Override
 	public int updateByPrimaryKeySelective(Device record) {
 		return deviceDao.updateByPrimaryKey(record);
 	}
 
-	/**
-	 * 
-	 * 说明 : 根据设备代码sn 查询考勤点不为空的设备
-	 * 
-	 * @param sn
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月25日 下午10:05:19
-	 */
 	@Override
 	public Device selectSignPointNotNullByDeviceSn(String sn) {
 		return deviceDao.selectSignPointNotNullByDeviceSn(sn);
 	}
-
-	/**
-	 * 说明 : 需要到当前设备上打卡的所有员工的数量
-	 * 
-	 * @author zhangshuagn
-	 * @param param
-	 * @return
-	 * @since 1.0-20170426
-	 */
 
 	@Override
 	public int countEmployeeBySn(String sn) {
@@ -387,14 +270,6 @@ public class DeviceServiceImpl extends BaseServiceImpl<Device> implements Device
 		return deviceDao.countEmployeeBySn(param);
 	}
 
-	/**
-	 * 说明 : 根据员工code,查询员工的指纹模板和面部模板数
-	 * 
-	 * @param code
-	 * @return
-	 * @author zhangshaung
-	 * @dateTime 2017年4月27日 下午6:00:10
-	 */
 	@Override
 	public int countFingerAndFaceByEmployeeCode(String code) {
 		if (null == code) {
