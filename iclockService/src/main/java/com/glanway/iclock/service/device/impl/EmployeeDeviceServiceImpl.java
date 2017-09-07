@@ -221,7 +221,7 @@ public class EmployeeDeviceServiceImpl extends BaseServiceImpl<EmployeeDevice> i
 			employeeDeviceDao.updateAllByEmployeeCode(new Date(), employeeDevice.getEmployeeCode(), "0", 1);// deleted=0(新建),stateType=1(待处理)
 		}
 		for (String sn : sns) {
-			taskService.pushCommand("设备管理员", "重启设备", null, null, sn, CommandWrapper.CMD_REBOOT);
+			taskService.pushCommand("Job执行", "重启设备", null, null, sn, CommandWrapper.CMD_REBOOT);
 		}
 	}
 }
