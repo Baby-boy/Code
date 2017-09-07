@@ -129,6 +129,8 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 		Task task = new Task();
 		task.setOperator(operator);
 		task.setHandleType(handleType);
+		task.setEmployeeCode(employeeDevice.getEmployeeCode());
+		task.setDeptId(employeeDevice.getDeptId());
 		task.setSn(employeeDevice.getSn());
 
 		// 拼接命令参数集
@@ -172,6 +174,8 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 		Task task = new Task();
 		task.setOperator(operator);
 		task.setHandleType(handleType);
+		task.setEmployeeCode(employeeDevice.getEmployeeCode());
+		task.setDeptId(employeeDevice.getDeptId());
 		task.setSn(employeeDevice.getSn());
 
 		// 拼接命令参数集
@@ -203,6 +207,8 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 		Task task = new Task();
 		task.setOperator(operator);
 		task.setHandleType(handleType);
+		task.setEmployeeCode(employeeDevice.getEmployeeCode());
+		task.setDeptId(employeeDevice.getDeptId());
 		task.setSn(employeeDevice.getSn());
 
 		// 拼接命令参数集
@@ -236,6 +242,8 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 		Task task = new Task();
 		task.setOperator(operator);
 		task.setHandleType(handleType);
+		task.setEmployeeCode(employeeDevice.getEmployeeCode());
+		task.setDeptId(employeeDevice.getDeptId());
 		task.setSn(employeeDevice.getSn());
 
 		// 拼接命令参数集
@@ -269,7 +277,8 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 	}
 
 	@Override
-	public void pushCommand(String operator, String handleType, String sn, String command, String... args) {
+	public void pushCommand(String operator, String handleType, String employeeCode, Long deptId, String sn,
+			String command, String... args) {
 		// 插入命令前将对应的设备状态更新为同步中
 		Device device = deviceService.selectByDeviceSn(sn);
 		if (null != device) {
@@ -282,6 +291,8 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 		Task task = new Task();
 		task.setOperator(operator);
 		task.setHandleType(handleType);
+		task.setEmployeeCode(employeeCode);
+		task.setDeptId(deptId);
 		task.setSn(sn);
 
 		// 创建命令执行参数

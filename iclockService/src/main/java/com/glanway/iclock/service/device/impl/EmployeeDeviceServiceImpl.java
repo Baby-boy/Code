@@ -76,6 +76,7 @@ public class EmployeeDeviceServiceImpl extends BaseServiceImpl<EmployeeDevice> i
 	}
 
 	private void handleQuitEmployeeDeviceInfo() {
+		// 通过员工表和设备员工基本信息表查询出离职人员信息
 		List<EmployeeDeviceInfo> employeeDeviceInfos = employeeDeviceInfoService.findEmployeeDeviceInfoByStateType(3);// 离职人员基本信息待处理标志位
 		for (EmployeeDeviceInfo employeeDeviceInfo : employeeDeviceInfos) {
 			// 通过员工ID查询对应的设备(通过视图)
@@ -85,17 +86,20 @@ public class EmployeeDeviceServiceImpl extends BaseServiceImpl<EmployeeDevice> i
 				taskService.pushCommand(
 						employeeDeviceInfo.getLastModifiedBy() == 1 ? "超级管理员"
 								: employeeDeviceInfo.getLastModifiedBy().toString(),
-						"删除离职员工基本信息", employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_USER,
+						"删除离职员工基本信息", employeeDevice.getEmployeeCode(), employeeDevice.getDeptId(),
+						employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_USER,
 						"PIN=" + employeeDeviceInfo.getEmployeeCode());
 				taskService.pushCommand(
 						employeeDeviceInfo.getLastModifiedBy() == 1 ? "超级管理员"
 								: employeeDeviceInfo.getLastModifiedBy().toString(),
-						"删除离职员工头像信息", employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_PHOTO,
+						"删除离职员工头像信息", employeeDevice.getEmployeeCode(), employeeDevice.getDeptId(),
+						employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_PHOTO,
 						"PIN=" + employeeDeviceInfo.getEmployeeCode());
 			}
 
 			// 插入完命令后直接更新状态
 			employeeDeviceInfo.setStateType(0);
+			employeeDeviceInfo.setDeleted("1");
 			employeeDeviceInfo.setLastModifiedDate(new Date());
 			employeeDeviceInfoService.update(employeeDeviceInfo);
 		}
@@ -112,13 +116,15 @@ public class EmployeeDeviceServiceImpl extends BaseServiceImpl<EmployeeDevice> i
 				taskService.pushCommand(
 						fingerFaceTemplate.getLastModifiedBy() == 1 ? "超级管理员"
 								: fingerFaceTemplate.getLastModifiedBy().toString(),
-						"删除离职员工指纹信息", employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_FINGER,
+						"删除离职员工指纹信息", employeeDevice.getEmployeeCode(), employeeDevice.getDeptId(),
+						employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_FINGER,
 						"PIN=" + fingerFaceTemplate.getEmployeeCode() + CommandWrapper.HT + "FID="
 								+ fingerFaceTemplate.getFid());
 			}
 
 			// 插入完命令后直接更新状态
 			fingerFaceTemplate.setStateType(0);
+			fingerFaceTemplate.setDeleted("1");
 			fingerFaceTemplate.setLastModifiedDate(new Date());
 			fingerFaceTemplateService.update(fingerFaceTemplate);
 		}
@@ -135,13 +141,15 @@ public class EmployeeDeviceServiceImpl extends BaseServiceImpl<EmployeeDevice> i
 				taskService.pushCommand(
 						fingerFaceTemplate.getLastModifiedBy() == 1 ? "超级管理员"
 								: fingerFaceTemplate.getLastModifiedBy().toString(),
-						"删除离职员工脸纹信息", employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_FACE,
+						"删除离职员工脸纹信息", employeeDevice.getEmployeeCode(), employeeDevice.getDeptId(),
+						employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_FACE,
 						"PIN=" + fingerFaceTemplate.getEmployeeCode() + CommandWrapper.HT + "FID="
 								+ fingerFaceTemplate.getFid());
 			}
 
 			// 插入完命令后直接更新状态
 			fingerFaceTemplate.setStateType(0);
+			fingerFaceTemplate.setDeleted("1");
 			fingerFaceTemplate.setLastModifiedDate(new Date());
 			fingerFaceTemplateService.update(fingerFaceTemplate);
 		}
@@ -223,7 +231,7 @@ public class EmployeeDeviceServiceImpl extends BaseServiceImpl<EmployeeDevice> i
 			fingerFaceTemplateService.update(fingerFaceTemplate);
 		}
 		for (String sn : sns) {
-			taskService.pushCommand("设备管理员", "重启设备", sn, CommandWrapper.CMD_REBOOT);
+			taskService.pushCommand("设备管理员", "重启设备", null, null, sn, CommandWrapper.CMD_REBOOT);
 		}
 	}
 
@@ -235,11 +243,13 @@ public class EmployeeDeviceServiceImpl extends BaseServiceImpl<EmployeeDevice> i
 					.getInfoByEmployeeCode(employeeDevice.getEmployeeCode());
 			if (null != employeeDeviceInfo) {
 				// 删除员工基本信息
-				taskService.pushCommand("Job执行", "删除员工基本信息", employeeDevice.getSn(),
-						CommandWrapper.CMD_DATA_DELETE_USER, "PIN=" + employeeDeviceInfo.getEmployeeCode());
+				taskService.pushCommand("Job执行", "删除员工基本信息", employeeDevice.getEmployeeCode(),
+						employeeDevice.getDeptId(), employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_USER,
+						"PIN=" + employeeDeviceInfo.getEmployeeCode());
 				// 删除员工头像信息
-				taskService.pushCommand("Job执行", "删除员工头像信息", employeeDevice.getSn(),
-						CommandWrapper.CMD_DATA_DELETE_PHOTO, "PIN=" + employeeDeviceInfo.getEmployeeCode());
+				taskService.pushCommand("Job执行", "删除员工头像信息", employeeDevice.getEmployeeCode(),
+						employeeDevice.getDeptId(), employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_PHOTO,
+						"PIN=" + employeeDeviceInfo.getEmployeeCode());
 			}
 
 			// 查询员工指纹信息
@@ -247,9 +257,10 @@ public class EmployeeDeviceServiceImpl extends BaseServiceImpl<EmployeeDevice> i
 					.selectByEmployeeCodeAndType(employeeDevice.getEmployeeCode(), 1);
 			for (FingerFaceTemplate fingerFaceTemplate : fingerTemplates) {
 				// 删除员工指纹信息
-				taskService.pushCommand("Job执行", "删除员工指纹信息", employeeDevice.getSn(),
-						CommandWrapper.CMD_DATA_DELETE_FINGER, "PIN=" + fingerFaceTemplate.getEmployeeCode()
-								+ CommandWrapper.HT + "FID=" + fingerFaceTemplate.getFid());
+				taskService.pushCommand("Job执行", "删除员工指纹信息", employeeDevice.getEmployeeCode(),
+						employeeDevice.getDeptId(), employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_FINGER,
+						"PIN=" + fingerFaceTemplate.getEmployeeCode() + CommandWrapper.HT + "FID="
+								+ fingerFaceTemplate.getFid());
 			}
 
 			// 查询员工脸纹信息
@@ -257,9 +268,10 @@ public class EmployeeDeviceServiceImpl extends BaseServiceImpl<EmployeeDevice> i
 					.selectByEmployeeCodeAndType(employeeDevice.getEmployeeCode(), 2);
 			for (FingerFaceTemplate fingerFaceTemplate : faceTemplates) {
 				// 删除员工脸纹信息
-				taskService.pushCommand("Job执行", "删除员工脸纹信息", employeeDevice.getSn(),
-						CommandWrapper.CMD_DATA_DELETE_FACE, "PIN=" + fingerFaceTemplate.getEmployeeCode()
-								+ CommandWrapper.HT + "FID=" + fingerFaceTemplate.getFid());
+				taskService.pushCommand("Job执行", "删除员工脸纹信息", employeeDevice.getEmployeeCode(),
+						employeeDevice.getDeptId(), employeeDevice.getSn(), CommandWrapper.CMD_DATA_DELETE_FACE,
+						"PIN=" + fingerFaceTemplate.getEmployeeCode() + CommandWrapper.HT + "FID="
+								+ fingerFaceTemplate.getFid());
 			}
 
 			// 处理完员工和设备关联表后,直接更新处理状态
@@ -308,7 +320,7 @@ public class EmployeeDeviceServiceImpl extends BaseServiceImpl<EmployeeDevice> i
 			employeeDeviceDao.updateAllByEmployeeCode(new Date(), employeeDevice.getEmployeeCode(), "0", 1);// deleted=0(新建),stateType=1(待处理)
 		}
 		for (String sn : sns) {
-			taskService.pushCommand("设备管理员", "重启设备", sn, CommandWrapper.CMD_REBOOT);
+			taskService.pushCommand("设备管理员", "重启设备", null, null, sn, CommandWrapper.CMD_REBOOT);
 		}
 	}
 }

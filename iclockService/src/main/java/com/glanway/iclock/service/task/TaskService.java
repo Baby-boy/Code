@@ -169,5 +169,6 @@ public interface TaskService extends BaseService<Task> {
 	 * @author FUQIHAO
 	 * @dateTime 2017年9月3日 下午9:32:11
 	 */
-	public void pushCommand(String operator, String handleType, String sn, String command, String... args);
+	public void pushCommand(String operator, String handleType, String employeeCode, Long deptId, String sn,
+			String command, String... args);
 }

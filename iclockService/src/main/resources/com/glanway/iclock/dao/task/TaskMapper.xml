@@ -19,10 +19,12 @@
 		<result column="LAST_MODIFIED_DATE" property="lastModifiedDate" jdbcType="TIMESTAMP" />
 		<result column="ARGS" property="args" jdbcType="CLOB" />
 		<result column="COMMAND" property="command" jdbcType="CLOB" />
+		<result column="EMPLOYEE_CODE" property="employeeCode" jdbcType="VARCHAR" />
+		<result column="DEPT_ID" property="deptId" jdbcType="DECIMAL" />
 	</resultMap>
 	<sql id="baseCols">
 		ID, OPERATOR, HANDLE_TYPE, SN, STATE, START_HANDLE_TIME,
-		COMPLETE_TIME,
+		COMPLETE_TIME,EMPLOYEE_CODE,DEPT_ID,
 		BATCH_DATE,
 		DELETED, CRE_PRO_ID, CREATED_BY,
 		CREATED_DATE, MOD_PRO_ID, LAST_MODIFIED_BY,
@@ -157,6 +159,12 @@
 			<if test="command != null">
 				COMMAND,
 			</if>
+			<if test="employeeCode != null">
+				EMPLOYEE_CODE,
+			</if>
+			<if test="deptId != null">
+				DEPT_ID,
+			</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
 			<if test="id != null">
@@ -209,6 +217,12 @@
 			</if>
 			<if test="command != null">
 				#{command,jdbcType=CLOB},
+			</if>
+			<if test="employeeCode != null">
+				#{employeeCode,jdbcType=VARCHAR},
+			</if>
+			<if test="deptId != null">
+				#{deptId,jdbcType=DECIMAL},
 			</if>
 		</trim>
 	</insert>
@@ -265,6 +279,12 @@
 			<if test="command != null">
 				COMMAND = #{command,jdbcType=CLOB},
 			</if>
+			<if test="employeeCode != null">
+				EMPLOYEE_CODE = #{employeeCode,jdbcType=VARCHAR},
+			</if>
+			<if test="deptId != null">
+				DEPT_ID = #{deptId,jdbcType=DECIMAL},
+			</if>
 		</set>
 		where ID = #{id,jdbcType=DECIMAL}
 	</update>
@@ -276,58 +296,74 @@
 		INSERT INTO　T_TASK(
 			<include refid="baseCols"/>
 		) VALUES(
-			#{id},#{sn},#{state},#{command},#{args},#{startHandleTime},#{completeTime},
-			#{batchDate},#{deleted},#{creProId},#{createdBy},
-			#{createdDate},#{modProId},#{lastModifiedBy},#{lastModifiedDate}
+			#{id}, #{operator}, #{handleType}, #{sn}, #{state}, #{startHandleTime},
+			#{completeTime},#{employeeCode},#{deptId}, #{batchDate}, #{deleted}, 
+			#{creProId}, #{createdBy}, #{createdDate}, #{modProId}, #{lastModifiedBy},
+			#{lastModifiedDate}
 		)
 	</insert>
 	 
 	<update id="update" parameterType="Task">
-		UPDATE T_TASK
+		update T_TASK
 		<set>
+			<if test="operator != null">
+				OPERATOR = #{operator,jdbcType=VARCHAR},
+			</if>
+			<if test="handleType != null">
+				HANDLE_TYPE = #{handleType,jdbcType=VARCHAR},
+			</if>
 			<if test="sn != null">
-				SN = #{sn},
+				SN = #{sn,jdbcType=VARCHAR},
 			</if>
 			<if test="state != null">
-				STATE = #{state},
-			</if>
-			<if test="command != null">
-				COMMAND = #{command},
-			</if>
-			<if test="args != null">
-				ARGS = #{args},
+				STATE = #{state,jdbcType=DECIMAL},
 			</if>
 			<if test="startHandleTime != null">
-				START_HANDLE_TIME = #{startHandleTime},
+				START_HANDLE_TIME =
+				#{startHandleTime,jdbcType=TIMESTAMP},
 			</if>
 			<if test="completeTime != null">
-				COMPLETE_TIME = #{completeTime},
+				COMPLETE_TIME = #{completeTime,jdbcType=TIMESTAMP},
 			</if>
 			<if test="batchDate != null">
-				BATCH_DATE = #{batchDate},
+				BATCH_DATE = #{batchDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="deleted != null">
+				DELETED = #{deleted,jdbcType=CHAR},
 			</if>
 			<if test="creProId != null">
-				CRE_PRO_ID = #{creProId},
+				CRE_PRO_ID = #{creProId,jdbcType=DECIMAL},
 			</if>
 			<if test="createdBy != null">
-				CREATED_BY = #{createdBy},
+				CREATED_BY = #{createdBy,jdbcType=DECIMAL},
 			</if>
 			<if test="createdDate != null">
-				CREATED_DATE = #{createdDate},
+				CREATED_DATE = #{createdDate,jdbcType=TIMESTAMP},
 			</if>
 			<if test="modProId != null">
-				MOD_PRO_ID = #{modProId},
+				MOD_PRO_ID = #{modProId,jdbcType=DECIMAL},
 			</if>
 			<if test="lastModifiedBy != null">
-				LAST_MODIFIED_BY = #{lastModifiedBy},
+				LAST_MODIFIED_BY = #{lastModifiedBy,jdbcType=DECIMAL},
 			</if>
 			<if test="lastModifiedDate != null">
-				LAST_MODIFIED_DATE = #{lastModifiedDate},
+				LAST_MODIFIED_DATE =
+				#{lastModifiedDate,jdbcType=TIMESTAMP},
+			</if>
+			<if test="args != null">
+				ARGS = #{args,jdbcType=CLOB},
+			</if>
+			<if test="command != null">
+				COMMAND = #{command,jdbcType=CLOB},
+			</if>
+			<if test="employeeCode != null">
+				EMPLOYEE_CODE = #{employeeCode,jdbcType=VARCHAR},
+			</if>
+			<if test="deptId != null">
+				DEPT_ID = #{deptId,jdbcType=DECIMAL},
 			</if>
 		</set>
-		<where>
-			ID = #{id}
-		</where>
+		where ID = #{id,jdbcType=DECIMAL}
 	</update>
 	 
 	<update id="delete" parameterType="Task">
@@ -367,11 +403,11 @@
 	<!-- 根据设备序列号查询该设备是否还存在任务 -->
 	<select id="findTaskByDeviceSn" resultType="Task">
 		SELECT 
-		ID, SN, STATE, COMMAND, ARGS
-	FROM T_TASK
-	WHERE SN = #{sn} 
-	AND DELETED = 0
-	AND COMMAND LIKE '%DATA UPDATE%'
+			ID, SN, STATE, COMMAND, ARGS
+		FROM T_TASK
+		WHERE SN = #{sn} 
+		AND DELETED = 0
+		AND COMMAND LIKE '%DATA UPDATE%'
 	</select>
 	
 	<insert id="insertIntoSelect">

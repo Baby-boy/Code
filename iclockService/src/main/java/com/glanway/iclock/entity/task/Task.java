@@ -31,6 +31,10 @@ public class Task extends BaseEntity {
 
 	private Date completeTime;// 完成时间
 
+	private String employeeCode;// 员工Code
+
+	private Long deptId;// 部门ID
+
 	public String getOperator() {
 		return operator;
 	}
@@ -95,4 +99,19 @@ public class Task extends BaseEntity {
 		this.completeTime = completeTime;
 	}
 
+	public String getEmployeeCode() {
+		return employeeCode;
+	}
+
+	public void setEmployeeCode(String employeeCode) {
+		this.employeeCode = employeeCode;
+	}
+
+	public Long getDeptId() {
+		return deptId;
+	}
+
+	public void setDeptId(Long deptId) {
+		this.deptId = deptId;
+	}
 }

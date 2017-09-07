@@ -188,11 +188,16 @@
 	<!-- 以下是考勤机相关的新逻辑(系统架构修改后的整改内容) -->
 	<!-- 查询待处理的员工指纹或者脸纹信息 -->
 	<select id="findFingerFaceTemplateByStateType" resultType="FingerFaceTemplate">
-		SELECT 
+		SELECT
 			<include refid="Base_Column_List"/>
-		FROM T_FINGER_FACE_TEMPLATE
-		WHERE DELETED = 0
-		AND STATE_TYPE = #{stateType}
-		AND TYPE = #{type}
+		FROM
+			T_FINGER_FACE_TEMPLATE TFFT,
+			T_EMPLOYEE EMP
+		WHERE	TFFT.DELETED = 0
+		AND EMP.DELETED = 0
+		AND TFFT.STATE_TYPE = #{stateType}
+		AND TFFT.TYPE = #{type}
+		AND EMP.CODE = TFFT.EMPLOYEE_CODE
+		AND TO_CHAR(EMP.QUIT_DATE,'YYYY-MM-DD') = TO_CHAR(SYSDATE,'YYYY-MM-DD')
 	</select>
 </mapper>
