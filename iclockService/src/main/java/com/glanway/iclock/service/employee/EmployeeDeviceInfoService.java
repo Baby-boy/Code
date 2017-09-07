@@ -79,4 +79,14 @@ public interface EmployeeDeviceInfoService extends BaseService<EmployeeDeviceInf
 	 * @dateTime 2017年9月3日 下午5:34:50
 	 */
 	public List<EmployeeDeviceInfo> findEmployeeDeviceInfoByStateType(Integer stateType);
+
+	/**
+	 * 查询离职人员脸纹或者指纹(当天离职).
+	 *
+	 * @return
+	 * @param stateType
+	 * @author FUQIHAO
+	 * @dateTime 2017年9月3日 下午5:34:50
+	 */
+	public List<EmployeeDeviceInfo> findEmployeeDeviceInfoByQuitStateType(Integer stateType);
 }

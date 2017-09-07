@@ -301,14 +301,17 @@
 	<!-- 以下是考勤机相关的新逻辑(系统架构修改后的整改内容) -->
 	<!-- 查询待处理的员工基本信息 -->
 	<select id="findEmployeeDeviceInfoByStateType" resultType="EmployeeDeviceInfo">
-		<!-- SELECT 
+		SELECT 
 			<include refid="Base_Column_List"/>
 		FROM T_EMPLOYEE_DEVICE_INFO 
 		WHERE DELETED = 0 
-		AND STATE_TYPE = #{stateType} -->
-		
+		AND STATE_TYPE = #{stateType}
+	</select>
+	
+	<!-- 查询离职人员脸纹或者指纹(当天离职). -->
+	<select id="findEmployeeDeviceInfoByQuitStateType" resultType="EmployeeDeviceInfo">
 		SELECT
-			<include refid="Base_Column_List"/>
+			TEDI.*
 		FROM
 			T_EMPLOYEE_DEVICE_INFO TEDI,
 			T_EMPLOYEE EMP

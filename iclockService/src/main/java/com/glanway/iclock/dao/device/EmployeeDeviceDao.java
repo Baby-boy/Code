@@ -17,6 +17,9 @@ public interface EmployeeDeviceDao extends BaseDao<EmployeeDevice> {
 	/** 根据员工Code查询对应的设备(视图) */
 	public List<EmployeeDevice> findEmployeeDeviceByCode(@Param("employeeCode") String employeeCode);
 
+	/** 根据员工Code查询离职人员对应的设备(视图)*/
+	public List<EmployeeDevice> findEmployeeDeviceByQuitCode(@Param("employeeCode") String employeeCode);
+
 	/** 根据状态查询待处理信息 */
 	public List<EmployeeDevice> findEmployeeDeviceList(@Param("deleted") String deleted,
 			@Param("stateType") Integer stateType);
@@ -25,5 +28,4 @@ public interface EmployeeDeviceDao extends BaseDao<EmployeeDevice> {
 	public void updateAllByEmployeeCode(@Param("lastModifiedDate") Date lastModifiedDate,
 			@Param("employeeCode") String employeeCode, @Param("deleted") String deleted,
 			@Param("stateType") Integer stateType);
-
 }

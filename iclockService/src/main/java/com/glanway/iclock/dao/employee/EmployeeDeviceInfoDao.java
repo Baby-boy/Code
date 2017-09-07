@@ -28,4 +28,6 @@ public interface EmployeeDeviceInfoDao extends BaseDao<EmployeeDeviceInfo> {
 	 * *********************** 以下是考勤机相关的新逻辑 **********************
 	 ****************************************************************/
 	public List<EmployeeDeviceInfo> findEmployeeDeviceInfoByStateType(@Param("stateType") Integer stateType);
+
+	public List<EmployeeDeviceInfo> findEmployeeDeviceInfoByQuitStateType(@Param("stateType") Integer stateType);
 }

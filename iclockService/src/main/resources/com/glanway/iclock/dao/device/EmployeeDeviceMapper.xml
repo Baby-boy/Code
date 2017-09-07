@@ -180,18 +180,20 @@
 	
 	<!-- 通过员工code查询对应的设备(视图) -->
 	<select id="findEmployeeDeviceByCode" resultType="EmployeeDevice">
-		<!-- SELECT
-			EMPLOYEE_NAME,EMPLOYEE_CODE,DEPT_ID,JOB_ID,SN
-		FROM
-			T_EMPLOYEE_DEVICE
-		WHERE DELETED = 0
-		AND EMPLOYEE_CODE = #{employeeCode}
-		GROUP BY EMPLOYEE_NAME,EMPLOYEE_CODE,DEPT_ID,JOB_ID,SN -->
-		
 		SELECT
 			NAME EMPLOYEE_NAME,CODE EMPLOYEE_CODE,DEPT_ID,JOB_ID,SN
 		FROM V_EMPLOYEE_DEVICE
 		WHERE JOB_STATE IN (1, 2)
+		AND CODE = #{employeeCode}
+		GROUP BY NAME,CODE,DEPT_ID,JOB_ID,SN
+	</select>
+	
+	<!-- 通过员工code查询离职人员对应的设备(视图) -->
+	<select id="findEmployeeDeviceByQuitCode" resultType="EmployeeDevice">
+		SELECT
+			NAME EMPLOYEE_NAME,CODE EMPLOYEE_CODE,DEPT_ID,JOB_ID,SN
+		FROM V_EMPLOYEE_DEVICE
+		WHERE JOB_STATE = 3
 		AND CODE = #{employeeCode}
 		GROUP BY NAME,CODE,DEPT_ID,JOB_ID,SN
 	</select>

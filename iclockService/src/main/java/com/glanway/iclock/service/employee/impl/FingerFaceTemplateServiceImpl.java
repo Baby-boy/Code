@@ -86,4 +86,14 @@ public class FingerFaceTemplateServiceImpl extends BaseServiceImpl<FingerFaceTem
 		return fingerFaceTemplateDao.findFingerFaceTemplateByStateType(type, stateType);
 	}
 
+	@Override
+	public List<FingerFaceTemplate> findFingerFaceTemplateByQuitStateType(Integer type, Integer stateType) {
+		return fingerFaceTemplateDao.findFingerFaceTemplateByQuitStateType(type, stateType);
+	}
+
+	@Override
+	public List<FingerFaceTemplate> findFingerFaceTemplateByEmployeeCode(String employeeCode) {
+		return fingerFaceTemplateDao.findFingerFaceTemplateByEmployeeCode(employeeCode);
+	}
+
 }

@@ -58,12 +58,34 @@ public interface FingerFaceTemplateService extends BaseService<FingerFaceTemplat
 	/**
 	 * 同步指纹脸纹模板.
 	 *
-	 * @param i
+	 * @param type
+	 * @param stateType
 	 * @return
-	 * @param i
 	 * @author FUQIHAO
 	 * @dateTime 2017年9月3日 下午7:54:32
 	 */
 	public List<FingerFaceTemplate> findFingerFaceTemplateByStateType(Integer type, Integer stateType);
+
+	/**
+	 * 查询离职人员脸纹或者指纹(当天离职).
+	 *
+	 * @param type
+	 * @param stateType
+	 * @return
+	 * @author FUQIHAO
+	 * @dateTime 2017年9月3日 下午7:54:32
+	 */
+	public List<FingerFaceTemplate> findFingerFaceTemplateByQuitStateType(Integer type, Integer stateType);
+
+	/**
+	 * 根据员工Code查询指纹和脸纹.
+	 *
+	 * @param type
+	 * @param stateType
+	 * @return
+	 * @author FUQIHAO
+	 * @dateTime 2017年9月3日 下午7:54:32
+	 */
+	public List<FingerFaceTemplate> findFingerFaceTemplateByEmployeeCode(String employeeCode);
 
 }

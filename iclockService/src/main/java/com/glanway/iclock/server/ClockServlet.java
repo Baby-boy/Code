@@ -479,7 +479,7 @@ public class ClockServlet extends HttpServlet {
 					// pushCommand(sn, CommandWrapper.CMD_RELOAD_OPTIONS, CommandWrapper.DEV_RELOAD_OPTIONS_ID_PREFIX + timestamp);
 				}
 
-				if (deviceOnline) {// 设备在使用,查询该设备存在的需要执行的命令
+				// if (deviceOnline) {// 设备在使用,查询该设备存在的需要执行的命令
 					final String command = pullCommands(sn);
 
 					if (StringUtils.isNoneEmpty(command)) {
@@ -488,7 +488,7 @@ public class ClockServlet extends HttpServlet {
 						}
 						doResponse(resp, command);
 					}
-				}
+				// }
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -549,9 +549,7 @@ public class ClockServlet extends HttpServlet {
 
 		try {
 			final String type = verifyMap.get(verify);
-			// LOGGER.info("系统存储从考勤机返回的考勤时间: {}", time);
 			final Date newDate = DateUtil.str2Date(time, DateUtil.DATETIME_FORMAT_YYYY_MM_DD_HHMMSS);
-			// LOGGER.info("系统格式化后的考勤机考勤时间: {}", newDate);
 	
 			// 获取newDate的前一分钟值 , 为了过滤同一人短时间重复打卡的
 			final Date beforeDate = TimeUtil.getTimeBeforeMinute(newDate, -1);
@@ -592,7 +590,7 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	protected void handleUserItem(final String sn, final Date now, final String item) {
-		final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
+		// final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
 		final Map<String, String> info = tokenizeToMap(item, "\t");
 		final String pin = info.get("PIN"); // 考勤号码.
 		final String name = info.get("Name"); // 用户姓名.
@@ -620,8 +618,6 @@ public class ClockServlet extends HttpServlet {
 					// employeeInfo.setPwd(config.getProperty("deviceManagerPwd"));
 					employeeInfo.setPwd(password);
 					employeeDeviceInfoService.updateById(employeeInfo);
-					// pri = "14";
-					// password = config.getProperty("deviceManagerPwd");
 					result = 0;
 				}
 			}
@@ -657,7 +653,6 @@ public class ClockServlet extends HttpServlet {
 						pri.equals("14") ? "超级管理员" : "普通用户", StringUtils.isNotEmpty(password) ? password : "无",
 						StringUtils.isNotEmpty(card) ? card : "无");
 			}
-	
 			// 缓存设备信息, 用于删除脏检查.
 			// cacheDeviceItem(sn, TAB_USERINFO, pin, timestamp + "|" + item);
 			// cacheDeviceItem("*", TAB_USERINFO, pin, item);
@@ -670,7 +665,7 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	protected void handleFingerprintItem(final String sn, final Date now, final String item) {
-		final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
+		// final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
 		final Map<String, String> info = tokenizeToMap(item, "\t");
 		final String pin = info.get("PIN");
 		final String fid = info.get("FID");
@@ -678,7 +673,7 @@ public class ClockServlet extends HttpServlet {
 		final String valid = info.get("Valid");
 		final String fingerTmp = info.get("TMP");
 		final String finger = 0 < size ? fingerTmp.substring(0, size) : fingerTmp;
-		final String key = pin + "-" + fid;
+		// final String key = pin + "-" + fid;
 
 		try {
 			FingerFaceTemplate fft = new FingerFaceTemplate();
@@ -718,7 +713,6 @@ public class ClockServlet extends HttpServlet {
 				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上用户{} 的指纹{} 信息发生变动, 已经将用户最新指纹信息更新到系统中.",
 						sn, pin, fid);
 			}
-
 			// 缓存设备信息, 用于删除脏检查.
 			// cacheDeviceItem(sn, TAB_FINGERTMP, key, timestamp + "|" + item);
 			// cacheDeviceItem("*", TAB_FINGERTMP, key, item);
@@ -731,7 +725,7 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	protected void handlePhotoItem(final String sn, final Date now, final String item) {
-		final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
+		// final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
 		final Map<String, String> info = tokenizeToMap(item, "\t");
 		final String pin = info.get("PIN");
 		final String filename = info.get("FileName");
@@ -752,7 +746,7 @@ public class ClockServlet extends HttpServlet {
 			if (result == 1) {
 				employeeDevInfo.setCreatedDate(new Date());
 				employeeDevInfo.setDeleted("0");
-				employeeDevInfo.setStateType(2);// 头像信息待处理状态设置为2
+				employeeDevInfo.setStateType(1);
 				employeeDevInfo.setLastModifiedDate(new Date());
 				employeeDeviceInfoService.save(employeeDevInfo);
 
@@ -762,15 +756,14 @@ public class ClockServlet extends HttpServlet {
 			} else if (result == 2 || result == 3) {
 				EmployeeDeviceInfo employeeDeviceInfo = employeeDeviceInfoService.getInfoByEmployeeCode(pin);
 				employeeDeviceInfo.setPic(photo);
-				employeeDeviceInfo.setStateType(2);// 头像信息待处理状态设置为2
+				employeeDeviceInfo.setStateType(1);
 				employeeDeviceInfo.setLastModifiedDate(new Date());
 				employeeDeviceInfoService.update(employeeDeviceInfo);
 				
-				LOGGER.info("设备{} 上用户{} 的头像信息发生变动, 变动为{}, 内容:{}", sn, pin, filename, photo);
+				LOGGER.info("设备{} 上用户{} 的头像信息发生变动, 变动为{}", sn, pin, filename);
 				new FileUtil(config.getProperty("log.filePath"), sn)
 						.log("设备{} 上用户{} 的头像信息发生变动, 变动为{}, 已经将用户最新头像信息更新到系统中.", sn, pin, filename);
 			}
-
 			// cacheDeviceItem(sn, TAB_USERPIC, pin, timestamp + "|" + item);
 			// cacheDeviceItem("*", TAB_USERPIC, pin, item);
 		} catch (Exception e) {
@@ -782,7 +775,7 @@ public class ClockServlet extends HttpServlet {
 	}
 
 	protected void handleFaceItem(final String sn, final Date now, final String item) {
-		final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
+		// final String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(now);
 		final Map<String, String> info = tokenizeToMap(item, "\t");
 		final String pin = info.get("PIN");
 		final String fid = info.get("FID");
@@ -830,7 +823,6 @@ public class ClockServlet extends HttpServlet {
 				new FileUtil(config.getProperty("log.filePath"), sn).log("设备{} 上用户{} 的脸纹{} 信息发生变动, 已经将用户最新脸纹信息更新到系统中.",
 						sn, pin, fid);
 			}
-
 			// cacheDeviceItem(sn, TAB_FACE, key, timestamp + "|" + item);
 			// cacheDeviceItem("*", TAB_FACE, key, item);
 		} catch (Exception e) {
@@ -896,28 +888,28 @@ public class ClockServlet extends HttpServlet {
 			if (null != oldEmployeeDeviceInfo) {
 				int flag = 0;
 				if (type == 1) {
-					if (null == oldEmployeeDeviceInfo.getPri() && null == oldEmployeeDeviceInfo.getPwd()
-							&& null == oldEmployeeDeviceInfo.getCard()) {
+					if (StringUtils.isEmpty(oldEmployeeDeviceInfo.getPri()) && StringUtils.isEmpty(oldEmployeeDeviceInfo.getPwd())
+							&& StringUtils.isEmpty(oldEmployeeDeviceInfo.getCard())) {
 						flag = 3;
 					} else {
-						if (null != employeeDeviceInfo.getPri()) {
+						if (StringUtils.isNotEmpty(employeeDeviceInfo.getPri())) {
 							if (!employeeDeviceInfo.getPri().equals(oldEmployeeDeviceInfo.getPri())) {
 								flag = 1;
 							}
 						}
-						if (null != employeeDeviceInfo.getPwd()) {
+						if (StringUtils.isNotEmpty(employeeDeviceInfo.getPwd())) {
 							if (!employeeDeviceInfo.getPwd().equals(oldEmployeeDeviceInfo.getPwd())) {
 								flag = 1;
 							}
 						}
-						if (null != employeeDeviceInfo.getCard()) {
+						if (StringUtils.isNotEmpty(employeeDeviceInfo.getCard())) {
 							if (!employeeDeviceInfo.getCard().equals(oldEmployeeDeviceInfo.getCard())) {
 								flag = 1;
 							}
 						}
 					}
 				} else if (type == 2) {
-					if (null != employeeDeviceInfo.getPic()) {
+					if (StringUtils.isNotEmpty(employeeDeviceInfo.getPic())) {
 						if (!employeeDeviceInfo.getPic().equals(oldEmployeeDeviceInfo.getPic())) {
 							flag = 1;
 						}

@@ -33,4 +33,9 @@ public interface FingerFaceTemplateDao extends BaseDao<FingerFaceTemplate> {
 	 ****************************************************************/
 	public List<FingerFaceTemplate> findFingerFaceTemplateByStateType(@Param("type") Integer type,
 			@Param("stateType") Integer stateType);
+
+	public List<FingerFaceTemplate> findFingerFaceTemplateByQuitStateType(@Param("type") Integer type,
+			@Param("stateType") Integer stateType);
+
+	public List<FingerFaceTemplate> findFingerFaceTemplateByEmployeeCode(@Param("employeeCode") String employeeCode);
 }

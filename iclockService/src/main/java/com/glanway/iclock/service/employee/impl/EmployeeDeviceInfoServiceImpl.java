@@ -145,4 +145,9 @@ public class EmployeeDeviceInfoServiceImpl extends BaseServiceImpl<EmployeeDevic
 	public List<EmployeeDeviceInfo> findEmployeeDeviceInfoByStateType(Integer stateType) {
 		return employeeDeviceInfoDao.findEmployeeDeviceInfoByStateType(stateType);
 	}
+
+	@Override
+	public List<EmployeeDeviceInfo> findEmployeeDeviceInfoByQuitStateType(Integer stateType) {
+		return employeeDeviceInfoDao.findEmployeeDeviceInfoByQuitStateType(stateType);
+	}
 }

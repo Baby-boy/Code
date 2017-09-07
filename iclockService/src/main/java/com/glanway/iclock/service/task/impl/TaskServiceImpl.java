@@ -22,8 +22,6 @@ import com.glanway.iclock.service.device.DeviceService;
 import com.glanway.iclock.service.task.TaskService;
 import com.glanway.iclock.util.StringUtil;
 
-import oracle.net.aso.d;
-
 /**
  * 说明 : 任务实现类
  * 
@@ -85,8 +83,8 @@ public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskServic
 		params.put("state", 3);
 		taskDao.updateStateById(params);
 
-		// taskDao.insertIntoSelect(id);
-		// taskDao.deleteTaskById(id);
+		taskDao.insertIntoSelect(id);
+		taskDao.deleteTaskById(id);
 	}
 
 	@Override
